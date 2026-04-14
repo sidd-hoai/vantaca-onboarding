@@ -335,7 +335,7 @@ const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()
                   ? <><Check size={16} color={C.white} strokeWidth={3}/> Authenticated</>
                   : passkeyState === 'scanning'
                   ? <><div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${C.blue}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }}/> Authenticating…</>
-                  : <><FingerprintIcon size={18} color={C.white}/> Sign in with Face ID / fingerprint</>
+                  : <><FingerprintIcon size={18} color={C.white}/> {isMobile ? 'Sign in with Face ID or fingerprint' : 'Sign in with Windows Hello or Touch ID'}</>
                 }
               </button>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:22 }}>
@@ -1887,7 +1887,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif' }}>Sign in faster next time</div>
                 <div style={{ fontSize:12, color:C.gray600, marginTop:3, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
-                  Set up Face ID or fingerprint to skip the email link on future visits. Takes 5 seconds.
+                  Use your fingerprint, Face ID, or device PIN to skip the email link on future visits. Takes 5 seconds.
                 </div>
                 <div style={{ marginTop:12, display:'flex', gap:8, flexWrap:'wrap' }}>
                   <button onClick={()=>{ setShowPasskeyModal(true); setPasskeySetupDone(false); }}
@@ -1964,7 +1964,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
                 </div>
                 <h3 style={{ fontSize:18, fontWeight:700, color:C.darkBlue, margin:'0 0 10px' }}>Create a passkey</h3>
                 <p style={{ fontSize:13, color:C.gray500, margin:'0 0 24px', lineHeight:1.65 }}>
-                  Use your device's Face ID, fingerprint, or PIN to sign in instantly — no email link needed.
+                  Use your fingerprint, Face ID, or device PIN to sign in instantly — no email link needed.
                 </p>
                 <div style={{ display:'flex', gap:10 }}>
                   <button onClick={()=>setShowPasskeyModal(false)}
@@ -1984,7 +1984,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
                 </div>
                 <h3 style={{ fontSize:18, fontWeight:700, color:C.darkBlue, margin:'0 0 10px' }}>Passkey saved!</h3>
                 <p style={{ fontSize:13, color:C.gray500, margin:'0 0 24px', lineHeight:1.65 }}>
-                  Next time you visit, tap "Sign in with Face ID / fingerprint" on the login screen — no email needed.
+                  Next time you visit, {isMobile ? 'tap' : 'click'} "{isMobile ? 'Sign in with Face ID or fingerprint' : 'Sign in with Windows Hello or Touch ID'}" on the login screen — no email needed.
                 </p>
                 <button onClick={()=>{ setShowPasskeyModal(false); setShowPasskeyCard(false); onPasskeyRegister?.(); }}
                   style={{ width:'100%', background:C.blue, border:'none', borderRadius:9, padding:'13px', fontSize:14, fontWeight:700, cursor:'pointer', color:C.white, fontFamily:'Montserrat,sans-serif' }}>
@@ -2038,7 +2038,7 @@ export default function App() {
         {nb('Landing',       screen==='landing',  ()=>{ setShowModal(false); setScreen('landing'); })}
         {nb('Pay Method',    screen==='method',   ()=>{ setShowModal(false); setScreen('method'); })}
         {nb('Details',       screen==='details',  ()=>{ setMethod('check'); setShowModal(false); setScreen('details'); })}
-        {nb('Dashboard',     screen==='dashboard' && !hasActiveSession, ()=>{ setShowModal(false); setScreen('dashboard'); setDashboardKey(k=>k+1); })}
+        {nb('Dashboard',     screen==='dashboard' && passkeyRegistered,  ()=>{ setHasActiveSession(false); setPasskeyRegistered(true); setShowModal(false); setScreen('dashboard'); setDashboardKey(k=>k+1); })}
 
         <Div />
 
