@@ -2001,77 +2001,72 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
 
 // ─── App Root ─────────────────────────────────────────────────
 export default function App() {
-  const [screen,            setScreen]           = useState<Screen>('login');
+  const [screen,            setScreen]           = useState<Screen>('email');
   const [method,            setMethod]           = useState<Method>('card');
   const [showModal,         setShowModal]        = useState(false);
   const [loginEmail,        setLoginEmail]       = useState('');
   const [hasActiveSession,  setHasActiveSession] = useState(false);
   const [passkeyRegistered, setPasskeyRegistered]= useState(false);
+  // Incrementing this key forces DashboardScreen to remount — needed when shortcuts
+  // are clicked while already on the dashboard (React won't remount otherwise)
+  const [dashboardKey,      setDashboardKey]     = useState(0);
 
   const handleSignOut = () => { setHasActiveSession(false); setPasskeyRegistered(false); setScreen('login'); };
 
-  const screens: [Screen,string][] = [
-    ['login-approve','Approve Wait'],
-    ['payment-email','Payment Email'],['post-email','Portal Access Email'],
-    ['email','Invite Email'],['landing','Landing'],['method','Pay Method'],
-    ['details','Details'],['dashboard','Dashboard'],
-  ];
+  // Nav divider helper
+  const Div = () => <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 2px', alignSelf:'stretch' }} />;
 
-  const navBtn = (active: boolean, onClick: ()=>void, label: string, accent?: string) => (
-    <button onClick={onClick}
-      style={{ background: active ? (accent ?? C.blue) : 'transparent', color: active ? C.white : 'rgba(255,255,255,0.42)', border:'none', borderRadius:7, padding:'4px 10px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'Montserrat,sans-serif', transition:'all 0.15s' }}>
-      {label}
-    </button>
+  // Nav button helper
+  const nb = (label: string, active: boolean, onClick: ()=>void, tint?: string) => (
+    <button key={label} onClick={onClick} style={{
+      background: active ? (tint ?? C.blue) : 'transparent',
+      color: active ? C.white : (tint ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.42)'),
+      border: tint && !active ? `1px solid ${tint}33` : 'none',
+      borderRadius:7, padding:'4px 9px', fontSize:11, fontWeight:600,
+      cursor:'pointer', fontFamily:'Montserrat,sans-serif', transition:'all 0.15s',
+    }}>{label}</button>
   );
 
   return (
     <>
       <Font />
-      {/* Demo nav */}
+      {/* Demo nav — ordered by user journey */}
       <div style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', zIndex:9999, background:C.darkBlue, borderRadius:'0 0 12px 12px', padding:'5px 8px', display:'flex', gap:3, alignItems:'center', boxShadow:Sh.lg }}>
 
-        {/* Login shortcuts — two variants, always adjacent */}
-        {navBtn(screen==='login' && !passkeyRegistered, ()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('login'); }, 'Login (no passkey)')}
-        {navBtn(screen==='login' && passkeyRegistered,  ()=>{ setHasActiveSession(false); setPasskeyRegistered(true);  setShowModal(false); setScreen('login'); }, 'Login (passkey set up)')}
+        {/* ── First-time onboarding flow ─────────────────────── */}
+        {nb('Invite Email',  screen==='email',    ()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('email'); })}
+        {nb('Landing',       screen==='landing',  ()=>{ setShowModal(false); setScreen('landing'); })}
+        {nb('Pay Method',    screen==='method',   ()=>{ setShowModal(false); setScreen('method'); })}
+        {nb('Details',       screen==='details',  ()=>{ setMethod('check'); setShowModal(false); setScreen('details'); })}
+        {nb('Dashboard',     screen==='dashboard' && !hasActiveSession, ()=>{ setShowModal(false); setScreen('dashboard'); setDashboardKey(k=>k+1); })}
 
-        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
+        <Div />
 
-        {/* Main onboarding flow */}
-        {screens.map(([s,l])=>(
-          <button key={s} onClick={()=>{
-            // When jumping to Details via nav, force Paper Check so USPS flow is visible
-            if (s === 'details') setMethod('check');
-            // Navigating to invite email starts a fresh first-time flow —
-            // reset session/passkey state so the passkey setup card renders correctly on dashboard
-            if (s === 'email') { setHasActiveSession(false); setPasskeyRegistered(false); }
-            setScreen(s);
-            if (s !== 'dashboard') setShowModal(false);
-          }}
-            style={{ background:screen===s?C.blue:'transparent', color:screen===s?C.white:'rgba(255,255,255,0.42)', border:'none', borderRadius:7, padding:'4px 10px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'Montserrat,sans-serif', transition:'all 0.15s' }}>
-            {l}
-          </button>
-        ))}
+        {/* ── Return visit flow ──────────────────────────────── */}
+        {nb('Login (no passkey)',    screen==='login' && !passkeyRegistered, ()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('login'); })}
+        {nb('Login (passkey set up)',screen==='login' && passkeyRegistered,  ()=>{ setHasActiveSession(false); setPasskeyRegistered(true);  setShowModal(false); setScreen('login'); })}
+        {nb('Approve Wait',          screen==='login-approve', ()=>{ setShowModal(false); setScreen('login-approve'); })}
 
-        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
+        <Div />
 
-        {/* Return-visit + setup shortcuts */}
-        <button onClick={()=>{ setHasActiveSession(true); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); }}
-          style={{ background:'rgba(100,178,75,0.18)', color:'#86efac', border:'1px solid rgba(100,178,75,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
-          Return (Session)
-        </button>
-        <button onClick={()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); }}
-          style={{ background:'rgba(74,144,184,0.18)', color:'#93c5fd', border:'1px solid rgba(74,144,184,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
-          Passkey Setup
-        </button>
+        {/* ── Follow-up emails ───────────────────────────────── */}
+        {nb('Payment Email',       screen==='payment-email', ()=>{ setShowModal(false); setScreen('payment-email'); })}
+        {nb('Portal Access Email', screen==='post-email',    ()=>{ setShowModal(false); setScreen('post-email'); })}
 
-        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
+        <Div />
+
+        {/* ── Dashboard shortcuts (force remount each click) ─── */}
+        {nb('Return (Session)', false, ()=>{ setHasActiveSession(true);  setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); setDashboardKey(k=>k+1); }, '#86efac')}
+        {nb('Passkey Setup',    false, ()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); setDashboardKey(k=>k+1); }, '#93c5fd')}
+
+        <Div />
         <span style={{ color:'rgba(255,255,255,0.25)', fontSize:10, alignSelf:'center', paddingRight:3, fontFamily:'Montserrat,sans-serif' }}>Vendor Onboarding Refresh</span>
       </div>
 
       <div style={{ paddingTop:32 }}>
         {screen==='login'         && <LoginScreen
                                        onApproveFlow={email=>{ setLoginEmail(email); setScreen('login-approve'); }}
-                                       onDashboard={()=>{ setHasActiveSession(false); setScreen('dashboard'); }}
+                                       onDashboard={()=>{ setHasActiveSession(false); setScreen('dashboard'); setDashboardKey(k=>k+1); }}
                                        passkeyRegistered={passkeyRegistered} />}
         {screen==='login-approve' && <ApproveWaitScreen
                                        email={loginEmail || VENDOR.email}
@@ -2079,7 +2074,7 @@ export default function App() {
                                        onBack={()=>setScreen('login')} />}
         {/* Payment email:
             - Button CTA  = magic link → dashboard (no login required)
-            - URL text links = stable login page → Return Login screen  */}
+            - URL text links = stable login page → Login (no passkey) screen  */}
         {screen==='payment-email' && <PaymentEmailScreen
                                        onViewPortal={()=>setScreen('dashboard')}
                                        onPortalUrl={()=>setScreen('login')} />}
@@ -2089,13 +2084,13 @@ export default function App() {
                                        onOpenPortal={()=>setScreen('dashboard')}
                                        onPortalUrl={()=>setScreen('login')} />}
         {screen==='email'         && <EmailScreen   onNext={()=>setScreen('landing')} />}
-        {screen==='landing'      && <LandingScreen onNext={()=>setScreen('method')} />}
-        {screen==='method'       && <MethodScreen  onNext={m=>{ setMethod(m); setScreen('details'); }} />}
-        {screen==='details'      && <DetailsScreen method={method} onNext={()=>{ setScreen('dashboard'); setShowModal(true); }} onBack={()=>setScreen('method')} />}
-        {screen==='dashboard'    && <DashboardScreen showModal={showModal} method={method} onCloseModal={()=>setShowModal(false)}
-                                       hasActiveSession={hasActiveSession} passkeyRegistered={passkeyRegistered}
-                                       onPasskeyRegister={()=>setPasskeyRegistered(true)}
-                                       onSignOut={handleSignOut} />}
+        {screen==='landing'       && <LandingScreen onNext={()=>setScreen('method')} />}
+        {screen==='method'        && <MethodScreen  onNext={m=>{ setMethod(m); setScreen('details'); }} />}
+        {screen==='details'       && <DetailsScreen method={method} onNext={()=>{ setScreen('dashboard'); setShowModal(true); setDashboardKey(k=>k+1); }} onBack={()=>setScreen('method')} />}
+        {screen==='dashboard'     && <DashboardScreen key={dashboardKey} showModal={showModal} method={method} onCloseModal={()=>setShowModal(false)}
+                                        hasActiveSession={hasActiveSession} passkeyRegistered={passkeyRegistered}
+                                        onPasskeyRegister={()=>setPasskeyRegistered(true)}
+                                        onSignOut={handleSignOut} />}
       </div>
     </>
   );
