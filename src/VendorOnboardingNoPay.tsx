@@ -335,7 +335,7 @@ const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()
                   ? <><Check size={16} color={C.white} strokeWidth={3}/> Authenticated</>
                   : passkeyState === 'scanning'
                   ? <><div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${C.blue}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }}/> Authenticating…</>
-                  : <><FingerprintIcon size={18} color={C.white}/> {isMobile ? 'Sign in with Face ID or fingerprint' : 'Sign in with Windows Hello or Touch ID'}</>
+                  : <><FingerprintIcon size={18} color={C.white}/> Sign in with passkey</>
                 }
               </button>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:22 }}>
@@ -1984,7 +1984,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
                 </div>
                 <h3 style={{ fontSize:18, fontWeight:700, color:C.darkBlue, margin:'0 0 10px' }}>Passkey saved!</h3>
                 <p style={{ fontSize:13, color:C.gray500, margin:'0 0 24px', lineHeight:1.65 }}>
-                  Next time you visit, {isMobile ? 'tap' : 'click'} "{isMobile ? 'Sign in with Face ID or fingerprint' : 'Sign in with Windows Hello or Touch ID'}" on the login screen — no email needed.
+                  Next time you visit, use your passkey on the login screen — no email needed.
                 </p>
                 <button onClick={()=>{ setShowPasskeyModal(false); setShowPasskeyCard(false); onPasskeyRegister?.(); }}
                   style={{ width:'100%', background:C.blue, border:'none', borderRadius:9, padding:'13px', fontSize:14, fontWeight:700, cursor:'pointer', color:C.white, fontFamily:'Montserrat,sans-serif' }}>
