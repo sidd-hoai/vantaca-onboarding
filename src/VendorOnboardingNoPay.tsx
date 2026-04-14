@@ -2077,12 +2077,12 @@ export default function App() {
             - URL text links = stable login page → Login (no passkey) screen  */}
         {screen==='payment-email' && <PaymentEmailScreen
                                        onViewPortal={()=>setScreen('dashboard')}
-                                       onPortalUrl={()=>setScreen('login')} />}
+                                       onPortalUrl={()=>{ setPasskeyRegistered(true); setScreen('login'); }} />}
         {/* Post-onboarding portal access email (sent 24-48h after setup,
             no payment queued). Same routing split as payment email.    */}
         {screen==='post-email'    && <PostOnboardingEmailScreen
                                        onOpenPortal={()=>setScreen('dashboard')}
-                                       onPortalUrl={()=>setScreen('login')} />}
+                                       onPortalUrl={()=>{ setPasskeyRegistered(true); setScreen('login'); }} />}
         {screen==='email'         && <EmailScreen   onNext={()=>setScreen('landing')} />}
         {screen==='landing'       && <LandingScreen onNext={()=>setScreen('method')} />}
         {screen==='method'        && <MethodScreen  onNext={m=>{ setMethod(m); setScreen('details'); }} />}
