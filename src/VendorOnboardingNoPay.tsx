@@ -14,7 +14,7 @@ import {
   Shield, Eye, EyeOff, Edit2, MapPin, Bell, Settings,
   LayoutDashboard, FileText, TrendingUp, Building2, Lock,
   HelpCircle, Users, X, Phone, Home, Star, AlertCircle,
-  Smartphone, Globe, RefreshCw, ChevronDown,
+  Smartphone, Globe, RefreshCw, ChevronDown, LogOut,
 } from 'lucide-react';
 
 // ─── Brand Tokens ─────────────────────────────────────────────
@@ -186,12 +186,13 @@ const FingerprintIcon: React.FC<{ size?:number; color?:string }> = ({ size=48, c
 );
 
 // ─── Return-Visit: Login Screen ───────────────────────────────
-const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()=>void }> = ({ onApproveFlow, onDashboard }) => {
+const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()=>void; passkeyRegistered?:boolean }> = ({ onApproveFlow, onDashboard, passkeyRegistered=false }) => {
   const w = useWindowWidth();
   const isMobile = w < 768;
   const [email, setEmail]             = useState(VENDOR.email);
   const [oauthState, setOauthState]   = useState<null|'google'|'microsoft'>(null);
   const [biometricState, setBiometric]= useState<'idle'|'scanning'|'done'>('idle');
+  const [passkeyState, setPasskeyState] = useState<'idle'|'scanning'|'done'>('idle');
   const [showSMS, setShowSMS]         = useState(false);
   const [smsCode, setSmsCode]         = useState('');
   const [smsError, setSmsError]       = useState(false);
@@ -204,6 +205,11 @@ const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()
   const handleBiometric = () => {
     setBiometric('scanning');
     setTimeout(() => { setBiometric('done'); setTimeout(onDashboard, 700); }, 1600);
+  };
+
+  const handlePasskeySignIn = () => {
+    setPasskeyState('scanning');
+    setTimeout(() => { setPasskeyState('done'); setTimeout(onDashboard, 600); }, 1400);
   };
 
   const handleSMSVerify = () => {
@@ -315,8 +321,30 @@ const LoginScreen: React.FC<{ onApproveFlow:(email:string)=>void; onDashboard:()
           <div style={{ textAlign:'center', marginBottom:28 }}>
             <Logo size="md"/>
             <h2 style={{ fontSize:23, fontWeight:700, color:C.darkBlue, margin:'20px 0 4px', fontFamily:'Montserrat,sans-serif', letterSpacing:'-0.02em' }}>Welcome back</h2>
-            <p style={{ fontSize:13, color:C.gray500, margin:0, fontFamily:'Montserrat,sans-serif' }}>Sign in to your Vantaca Vendor account</p>
+            <p style={{ fontSize:13, color:C.gray500, margin:0, fontFamily:'Montserrat,sans-serif' }}>
+              {passkeyRegistered ? `${VENDOR.contact} · ${VENDOR.name}` : 'Sign in to your Vantaca Vendor account'}
+            </p>
           </div>
+
+          {/* Passkey sign-in — shown as primary when passkey registered on this device */}
+          {passkeyRegistered && (
+            <>
+              <button onClick={handlePasskeySignIn} disabled={passkeyState !== 'idle'}
+                style={{ width:'100%', background: passkeyState==='done' ? C.green : passkeyState==='scanning' ? C.blue50 : C.blue, border:`1.5px solid ${passkeyState==='done'?C.green:C.blue}`, borderRadius:10, padding:'13px 18px', fontSize:14, fontWeight:700, cursor: passkeyState!=='idle'?'default':'pointer', fontFamily:'Montserrat,sans-serif', display:'flex', alignItems:'center', justifyContent:'center', gap:10, color: passkeyState==='scanning'?C.blue:C.white, marginBottom:18, transition:'all 0.2s', boxShadow:Sh.sm }}>
+                {passkeyState === 'done'
+                  ? <><Check size={16} color={C.white} strokeWidth={3}/> Authenticated</>
+                  : passkeyState === 'scanning'
+                  ? <><div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${C.blue}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }}/> Authenticating…</>
+                  : <><FingerprintIcon size={18} color={C.white}/> Sign in with Face ID / fingerprint</>
+                }
+              </button>
+              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:22 }}>
+                <div style={{ flex:1, height:1, background:C.gray200 }}/>
+                <span style={{ fontSize:11, color:C.gray400, fontFamily:'Montserrat,sans-serif' }}>or sign in another way</span>
+                <div style={{ flex:1, height:1, background:C.gray200 }}/>
+              </div>
+            </>
+          )}
 
           {/* OAuth buttons */}
           <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:22 }}>
@@ -1673,11 +1701,28 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
 };
 
 // ─── Screen 5: Dashboard (empty state + modal) ────────────────
-const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal:()=>void }> = ({ showModal, method, onCloseModal }) => {
+const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal:()=>void; hasActiveSession?:boolean; passkeyRegistered?:boolean; onPasskeyRegister?:()=>void; onSignOut?:()=>void }> = ({ showModal, method, onCloseModal, hasActiveSession=false, passkeyRegistered=false, onPasskeyRegister, onSignOut }) => {
   const w = useWindowWidth();
   const isMobile = w < 768;
   const [nav, setNav] = useState('dashboard');
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Welcome-back toast — shown for 3s when vendor returns via saved session
+  const [showWelcomeBack, setShowWelcomeBack] = useState(hasActiveSession);
+  useEffect(() => {
+    if (!hasActiveSession) return;
+    const t = setTimeout(() => setShowWelcomeBack(false), 3200);
+    return () => clearTimeout(t);
+  }, [hasActiveSession]);
+
+  // Passkey setup card + mock browser dialog
+  const [showPasskeyCard,  setShowPasskeyCard]  = useState(!passkeyRegistered && !hasActiveSession);
+  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
+  const [passkeySetupDone, setPasskeySetupDone] = useState(false);
+  const handlePasskeyCreate = () => {
+    setTimeout(() => setPasskeySetupDone(true), 900);
+  };
+
   // Layer 2 re-entry: first-session "save your access" banner.
   // Shown until vendor explicitly dismisses. In production, persist
   // dismissal to localStorage so it does not reappear on the same device.
@@ -1713,10 +1758,18 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
       </nav>
       <div style={{ padding:'12px 16px', borderTop:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:10 }}>
         <div style={{ width:28, height:28, borderRadius:'50%', background:C.blue, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:C.white, flexShrink:0 }}>M</div>
-        <div>
+        <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:12, fontWeight:600, color:C.white, fontFamily:'Montserrat,sans-serif' }}>{VENDOR.contact}</div>
           <div style={{ fontSize:10, color:'rgba(255,255,255,0.35)', fontFamily:'Montserrat,sans-serif' }}>{VENDOR.name}</div>
         </div>
+        {onSignOut && (
+          <button onClick={onSignOut} title="Sign out"
+            style={{ background:'none', border:'none', cursor:'pointer', padding:4, display:'flex', alignItems:'center', opacity:0.4, flexShrink:0 }}
+            onMouseEnter={e=>(e.currentTarget.style.opacity='1')}
+            onMouseLeave={e=>(e.currentTarget.style.opacity='0.4')}>
+            <LogOut size={13} color={C.white}/>
+          </button>
+        )}
       </div>
     </>
   );
@@ -1758,6 +1811,20 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
             <div style={{ width:28, height:28, borderRadius:'50%', background:C.blue, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:C.white, cursor:'pointer' }}>M</div>
           </div>
         </div>
+
+        {/* ── Welcome-back toast (shown for 3s on session return) ── */}
+        {showWelcomeBack && (
+          <div style={{ background:C.green50, borderBottom:`1px solid ${C.green100}`, padding:isMobile?'10px 14px':'9px 24px', display:'flex', alignItems:'center', gap:10 }}>
+            <CheckCircle size={15} color={C.green} style={{ flexShrink:0 }}/>
+            <span style={{ fontSize:12, fontWeight:600, color:'#166534', fontFamily:'Montserrat,sans-serif', flex:1 }}>
+              Welcome back, {VENDOR.contact}. You're signed in on this device.
+            </span>
+            <button onClick={()=>setShowWelcomeBack(false)}
+              style={{ background:'none', border:'none', cursor:'pointer', padding:2, display:'flex', alignItems:'center', flexShrink:0 }}>
+              <X size={13} color='#166534'/>
+            </button>
+          </div>
+        )}
 
         {/* ── Save-your-access banner (Layer 2 re-entry) ── */}
         {/* Shown for the entire first session. Vendor may have arrived via
@@ -1811,6 +1878,35 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
             </div>
           </div>
 
+          {/* Passkey setup card — shown after first magic-link login, once per session */}
+          {showPasskeyCard && !passkeyRegistered && (
+            <div style={{ background:C.blue50, border:`1px solid ${C.blue100}`, borderRadius:12, padding:isMobile?'14px 14px':'16px 18px', marginBottom:18, display:'flex', gap:14, alignItems:'flex-start' }}>
+              <div style={{ width:40, height:40, borderRadius:10, background:C.white, border:`1px solid ${C.blue100}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <FingerprintIcon size={22} color={C.blue}/>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif' }}>Sign in faster next time</div>
+                <div style={{ fontSize:12, color:C.gray600, marginTop:3, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
+                  Set up Face ID or fingerprint to skip the email link on future visits. Takes 5 seconds.
+                </div>
+                <div style={{ marginTop:12, display:'flex', gap:8, flexWrap:'wrap' }}>
+                  <button onClick={()=>{ setShowPasskeyModal(true); setPasskeySetupDone(false); }}
+                    style={{ background:C.blue, color:C.white, border:'none', borderRadius:7, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
+                    Set up passkey
+                  </button>
+                  <button onClick={()=>setShowPasskeyCard(false)}
+                    style={{ background:'none', color:C.gray500, border:`1px solid ${C.gray200}`, borderRadius:7, padding:'7px 14px', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
+                    Maybe later
+                  </button>
+                </div>
+              </div>
+              <button onClick={()=>setShowPasskeyCard(false)}
+                style={{ background:'none', border:'none', cursor:'pointer', padding:2, flexShrink:0, marginTop:-2 }}>
+                <X size={14} color={C.gray400}/>
+              </button>
+            </div>
+          )}
+
           {/* KPIs */}
           <div style={{ display:'grid', gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)', gap:12, marginBottom:18 }}>
             {[
@@ -1856,16 +1952,63 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
 
       {/* Confirm modal */}
       {showModal && <ConfirmModal method={method} onClose={onCloseModal} />}
+
+      {/* Passkey setup modal — mock browser dialog */}
+      {showPasskeyModal && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:9100, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 20px' }}>
+          <div style={{ background:C.white, borderRadius:18, padding:'36px 28px', maxWidth:340, width:'100%', boxShadow:Sh.lg, textAlign:'center', fontFamily:'Montserrat,sans-serif' }}>
+            {!passkeySetupDone ? (
+              <>
+                <div style={{ width:68, height:68, borderRadius:'50%', background:C.blue50, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
+                  <FingerprintIcon size={36} color={C.blue}/>
+                </div>
+                <h3 style={{ fontSize:18, fontWeight:700, color:C.darkBlue, margin:'0 0 10px' }}>Create a passkey</h3>
+                <p style={{ fontSize:13, color:C.gray500, margin:'0 0 24px', lineHeight:1.65 }}>
+                  Use your device's Face ID, fingerprint, or PIN to sign in instantly — no email link needed.
+                </p>
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={()=>setShowPasskeyModal(false)}
+                    style={{ flex:1, background:C.gray100, border:'none', borderRadius:9, padding:'12px', fontSize:13, fontWeight:600, cursor:'pointer', color:C.gray700 }}>
+                    Cancel
+                  </button>
+                  <button onClick={handlePasskeyCreate}
+                    style={{ flex:1, background:C.blue, border:'none', borderRadius:9, padding:'12px', fontSize:13, fontWeight:700, cursor:'pointer', color:C.white }}>
+                    Continue
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ width:68, height:68, borderRadius:'50%', background:C.green50, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
+                  <CheckCircle size={34} color={C.green}/>
+                </div>
+                <h3 style={{ fontSize:18, fontWeight:700, color:C.darkBlue, margin:'0 0 10px' }}>Passkey saved!</h3>
+                <p style={{ fontSize:13, color:C.gray500, margin:'0 0 24px', lineHeight:1.65 }}>
+                  Next time you visit, tap "Sign in with Face ID / fingerprint" on the login screen — no email needed.
+                </p>
+                <button onClick={()=>{ setShowPasskeyModal(false); setShowPasskeyCard(false); onPasskeyRegister?.(); }}
+                  style={{ width:'100%', background:C.blue, border:'none', borderRadius:9, padding:'13px', fontSize:14, fontWeight:700, cursor:'pointer', color:C.white, fontFamily:'Montserrat,sans-serif' }}>
+                  Done
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // ─── App Root ─────────────────────────────────────────────────
 export default function App() {
-  const [screen,     setScreen]     = useState<Screen>('login');
-  const [method,     setMethod]     = useState<Method>('card');
-  const [showModal,  setShowModal]  = useState(false);
-  const [loginEmail, setLoginEmail] = useState('');
+  const [screen,            setScreen]           = useState<Screen>('login');
+  const [method,            setMethod]           = useState<Method>('card');
+  const [showModal,         setShowModal]        = useState(false);
+  const [loginEmail,        setLoginEmail]       = useState('');
+  const [hasActiveSession,  setHasActiveSession] = useState(false);
+  const [passkeyRegistered, setPasskeyRegistered]= useState(false);
+
+  const handleSignOut = () => { setHasActiveSession(false); setPasskeyRegistered(false); setScreen('login'); };
 
   const screens: [Screen,string][] = [
     ['login','Return Login'],['login-approve','Approve Wait'],
@@ -1891,13 +2034,24 @@ export default function App() {
           </button>
         ))}
         <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px' }}/>
+        {/* Return-visit demo shortcuts */}
+        <button onClick={()=>{ setHasActiveSession(true); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); }}
+          style={{ background:'rgba(100,178,75,0.18)', color:'#86efac', border:'1px solid rgba(100,178,75,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
+          Return (Session)
+        </button>
+        <button onClick={()=>{ setHasActiveSession(false); setPasskeyRegistered(true); setShowModal(false); setScreen('login'); }}
+          style={{ background:'rgba(74,144,184,0.18)', color:'#93c5fd', border:'1px solid rgba(74,144,184,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
+          Return (Passkey)
+        </button>
+        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px' }}/>
         <span style={{ color:'rgba(255,255,255,0.25)', fontSize:10, alignSelf:'center', paddingRight:3, fontFamily:'Montserrat,sans-serif' }}>Vendor Onboarding Refresh</span>
       </div>
 
       <div style={{ paddingTop:32 }}>
         {screen==='login'         && <LoginScreen
                                        onApproveFlow={email=>{ setLoginEmail(email); setScreen('login-approve'); }}
-                                       onDashboard={()=>setScreen('dashboard')} />}
+                                       onDashboard={()=>{ setHasActiveSession(false); setScreen('dashboard'); }}
+                                       passkeyRegistered={passkeyRegistered} />}
         {screen==='login-approve' && <ApproveWaitScreen
                                        email={loginEmail || VENDOR.email}
                                        onApproved={()=>setScreen('dashboard')}
@@ -1917,7 +2071,10 @@ export default function App() {
         {screen==='landing'      && <LandingScreen onNext={()=>setScreen('method')} />}
         {screen==='method'       && <MethodScreen  onNext={m=>{ setMethod(m); setScreen('details'); }} />}
         {screen==='details'      && <DetailsScreen method={method} onNext={()=>{ setScreen('dashboard'); setShowModal(true); }} onBack={()=>setScreen('method')} />}
-        {screen==='dashboard'    && <DashboardScreen showModal={showModal} method={method} onCloseModal={()=>setShowModal(false)} />}
+        {screen==='dashboard'    && <DashboardScreen showModal={showModal} method={method} onCloseModal={()=>setShowModal(false)}
+                                       hasActiveSession={hasActiveSession} passkeyRegistered={passkeyRegistered}
+                                       onPasskeyRegister={()=>setPasskeyRegistered(true)}
+                                       onSignOut={handleSignOut} />}
       </div>
     </>
   );
