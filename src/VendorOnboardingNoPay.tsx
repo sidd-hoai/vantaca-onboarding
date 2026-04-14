@@ -2026,6 +2026,9 @@ export default function App() {
           <button key={s} onClick={()=>{
             // When jumping to Details via nav, force Paper Check so USPS flow is visible
             if (s === 'details') setMethod('check');
+            // Navigating to login or the invite email screen starts a fresh first-time flow —
+            // reset session/passkey state so the passkey setup card renders correctly on dashboard
+            if (s === 'login' || s === 'email') { setHasActiveSession(false); setPasskeyRegistered(false); }
             setScreen(s);
             if (s !== 'dashboard') setShowModal(false);
           }}
