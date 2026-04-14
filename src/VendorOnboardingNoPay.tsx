@@ -2011,24 +2011,39 @@ export default function App() {
   const handleSignOut = () => { setHasActiveSession(false); setPasskeyRegistered(false); setScreen('login'); };
 
   const screens: [Screen,string][] = [
-    ['login','Return Login'],['login-approve','Approve Wait'],
+    ['login-approve','Approve Wait'],
     ['payment-email','Payment Email'],['post-email','Portal Access Email'],
     ['email','Invite Email'],['landing','Landing'],['method','Pay Method'],
     ['details','Details'],['dashboard','Dashboard'],
   ];
 
+  const navBtn = (active: boolean, onClick: ()=>void, label: string, accent?: string) => (
+    <button onClick={onClick}
+      style={{ background: active ? (accent ?? C.blue) : 'transparent', color: active ? C.white : 'rgba(255,255,255,0.42)', border:'none', borderRadius:7, padding:'4px 10px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'Montserrat,sans-serif', transition:'all 0.15s' }}>
+      {label}
+    </button>
+  );
+
   return (
     <>
       <Font />
       {/* Demo nav */}
-      <div style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', zIndex:9999, background:C.darkBlue, borderRadius:'0 0 12px 12px', padding:'5px 8px', display:'flex', gap:3, boxShadow:Sh.lg }}>
+      <div style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', zIndex:9999, background:C.darkBlue, borderRadius:'0 0 12px 12px', padding:'5px 8px', display:'flex', gap:3, alignItems:'center', boxShadow:Sh.lg }}>
+
+        {/* Login shortcuts — two variants, always adjacent */}
+        {navBtn(screen==='login' && !passkeyRegistered, ()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('login'); }, 'Login (no passkey)')}
+        {navBtn(screen==='login' && passkeyRegistered,  ()=>{ setHasActiveSession(false); setPasskeyRegistered(true);  setShowModal(false); setScreen('login'); }, 'Login (passkey set up)')}
+
+        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
+
+        {/* Main onboarding flow */}
         {screens.map(([s,l])=>(
           <button key={s} onClick={()=>{
             // When jumping to Details via nav, force Paper Check so USPS flow is visible
             if (s === 'details') setMethod('check');
-            // Navigating to login or the invite email screen starts a fresh first-time flow —
+            // Navigating to invite email starts a fresh first-time flow —
             // reset session/passkey state so the passkey setup card renders correctly on dashboard
-            if (s === 'login' || s === 'email') { setHasActiveSession(false); setPasskeyRegistered(false); }
+            if (s === 'email') { setHasActiveSession(false); setPasskeyRegistered(false); }
             setScreen(s);
             if (s !== 'dashboard') setShowModal(false);
           }}
@@ -2036,17 +2051,20 @@ export default function App() {
             {l}
           </button>
         ))}
-        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px' }}/>
-        {/* Return-visit demo shortcuts */}
+
+        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
+
+        {/* Return-visit + setup shortcuts */}
         <button onClick={()=>{ setHasActiveSession(true); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); }}
           style={{ background:'rgba(100,178,75,0.18)', color:'#86efac', border:'1px solid rgba(100,178,75,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
           Return (Session)
         </button>
-        <button onClick={()=>{ setHasActiveSession(false); setPasskeyRegistered(true); setShowModal(false); setScreen('login'); }}
+        <button onClick={()=>{ setHasActiveSession(false); setPasskeyRegistered(false); setShowModal(false); setScreen('dashboard'); }}
           style={{ background:'rgba(74,144,184,0.18)', color:'#93c5fd', border:'1px solid rgba(74,144,184,0.3)', borderRadius:7, padding:'4px 9px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'Montserrat,sans-serif' }}>
-          Return (Passkey)
+          Passkey Setup
         </button>
-        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px' }}/>
+
+        <div style={{ width:1, background:'rgba(255,255,255,0.12)', margin:'0 3px', alignSelf:'stretch' }}/>
         <span style={{ color:'rgba(255,255,255,0.25)', fontSize:10, alignSelf:'center', paddingRight:3, fontFamily:'Montserrat,sans-serif' }}>Vendor Onboarding Refresh</span>
       </div>
 
