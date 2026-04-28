@@ -1186,8 +1186,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
   const isMobile = w < 640;
   const [editEmail, setEditEmail] = useState(false);
   const [emailVal,  setEmailVal]  = useState(VENDOR.email);
-  const [showR, setShowR] = useState(false);
-  const [showA, setShowA] = useState(false);
+  const [showBankDetails, setShowBankDetails] = useState(false);
   const [editAddr, setEditAddr] = useState(false);
 
   // OTP identity verification gate — required before any payment field edit
@@ -1410,32 +1409,31 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                   <div>
                     <div style={{ fontSize:10, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:2 }}>Routing Number</div>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showR ? routingVal : VENDOR.routingMask}</span>
+                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showBankDetails ? routingVal : VENDOR.routingMask}</span>
                       <CheckCircle size={12} color={C.green}/>
                     </div>
                   </div>
-                  <button onClick={()=>setShowR(!showR)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
-                    {showR?<EyeOff size={15}/>:<Eye size={15}/>}
-                  </button>
                 </div>
                 {/* Account row */}
                 <div style={{ padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div>
                     <div style={{ fontSize:10, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:2 }}>Account Number</div>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showA ? accountVal : VENDOR.accountMask}</span>
+                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showBankDetails ? accountVal : VENDOR.accountMask}</span>
                       <CheckCircle size={12} color={C.green}/>
                     </div>
                   </div>
-                  <button onClick={()=>setShowA(!showA)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
-                    {showA?<EyeOff size={15}/>:<Eye size={15}/>}
-                  </button>
                 </div>
               </div>
-              {/* Single combined Edit button for both fields */}
-              <button onClick={()=>requestEdit('bankDetails')} style={{ background:'none', border:'none', cursor:'pointer', color:C.blue, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4, fontFamily:'Montserrat,sans-serif', padding:'4px 0', marginBottom:9 }}>
-                <Edit2 size={12}/> Edit account &amp; routing number
-              </button>
+              {/* Combined reveal + edit row */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:9 }}>
+                <button onClick={()=>setShowBankDetails(!showBankDetails)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray500, fontSize:12, fontWeight:500, display:'flex', alignItems:'center', gap:4, fontFamily:'Montserrat,sans-serif', padding:'4px 0' }}>
+                  {showBankDetails ? <><EyeOff size={12}/> Hide account details</> : <><Eye size={12}/> Show account details</>}
+                </button>
+                <button onClick={()=>requestEdit('bankDetails')} style={{ background:'none', border:'none', cursor:'pointer', color:C.blue, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4, fontFamily:'Montserrat,sans-serif', padding:'4px 0' }}>
+                  <Edit2 size={12}/> Edit
+                </button>
+              </div>
             </>
           )}
         </>
