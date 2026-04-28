@@ -1053,11 +1053,6 @@ const LandingScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:isMobile?'24px 16px':'40px 24px' }}>
         <div style={{ background:C.white, borderRadius:16, padding:isMobile?'28px 20px':'44px 48px', boxShadow:Sh.lg, maxWidth:480, width:'100%', transform:ready?'translateY(0)':'translateY(20px)', opacity:ready?1:0, transition:'all 0.4s ease' }}>
 
-          <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:C.green50, borderRadius:8, padding:'6px 14px', marginBottom:22, border:`1px solid ${C.green100}` }}>
-            <CheckCircle size={14} color={C.green} />
-            <span style={{ fontSize:12, fontWeight:600, color:C.green600, fontFamily:'Montserrat,sans-serif' }}>Email Verified</span>
-          </div>
-
           <h1 style={{ fontSize:isMobile?22:26, fontWeight:700, color:C.darkBlue, margin:'0 0 6px', letterSpacing:'-0.02em', fontFamily:'Montserrat,sans-serif' }}>
             Welcome, {VENDOR.contact} 👋
           </h1>
@@ -1073,7 +1068,7 @@ const LandingScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
             <div style={{ display:'flex', gap:11, alignItems:'flex-start' }}>
               <div style={{ marginTop:2, flexShrink:0 }}><CheckCircle size={16} color={C.blue}/></div>
               <div style={{ fontSize:12, color:C.gray700, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
-                <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. Select your preferred payment method below to complete your setup.
+                <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. To complete your setup, select your preferred payment method by clicking the button below.
               </div>
             </div>
           </div>
@@ -1095,6 +1090,14 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
   const [sel, setSel] = useState<Method>('card');
   const [openFeeTooltip, setOpenFeeTooltip] = useState<Method|null>(null);
 
+  // Close tooltip on any click outside the help button
+  useEffect(() => {
+    if (!openFeeTooltip) return;
+    const close = () => setOpenFeeTooltip(null);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [openFeeTooltip]);
+
   const methods: {
     id:Method; icon:React.ReactNode; title:string; sub:string;
     speed:string; speedColor:string; speedBg:string;
@@ -1102,7 +1105,7 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
     tag?:string; tagColor?:string; tagBg?:string; warning?:string;
   }[] = [
     { id:'card',    icon:<CreditCard size={20}/>, title:'Digital Card',           sub:'A virtual card is sent to your email the instant a payment is approved. Funds are available to be used immediately.',               speed:'Instant',           speedColor:C.green600, speedBg:C.green50,  fee:'Standard Processing Fee', feeColor:C.gray500,  feeBg:C.gray100, feeInfo:'This is a single-use card issued only for this invoice. It must be processed through your merchant system.', tag:'FASTEST · RECOMMENDED', tagColor:C.green600, tagBg:C.green50 },
-    { id:'sameday', icon:<Zap size={20}/>,        title:'Same-Day Bank Transfer', sub:'Funds deposited directly into your bank account by the end of the same business day.',                                             speed:'Same business day', speedColor:'#B45309',  speedBg:C.amber50,  fee:'1% fee · max $25',        feeColor:'#B45309',  feeBg:C.amber50,  tag:'Fast',                  tagColor:C.amber500, tagBg:C.amber50  },
+    { id:'sameday', icon:<Zap size={20}/>,        title:'Same-Day Bank Transfer', sub:'Funds deposited directly into your bank account by the end of the same business day.',                                             speed:'Same business day', speedColor:C.gray600,  speedBg:C.gray100,  fee:'1% fee · max $25',        feeColor:C.gray500,  feeBg:C.gray100,  tag:'Fast',                  tagColor:C.gray600,  tagBg:C.gray100  },
     { id:'check',   icon:<Truck size={20}/>,      title:'Paper Check',            sub:'A physical check mailed to your address on file. Subject to postal delays.',                                                       speed:'7–10 business days',speedColor:C.gray500,  speedBg:C.gray100,  fee:'No fee',                  feeColor:C.gray500,  feeBg:C.gray100, warning:'Slowest option. Postal delays may apply.' },
     { id:'ach',     icon:<Landmark size={20}/>,   title:'Standard Bank Transfer', sub:'Free ACH deposit to your bank — a reliable option that clears in a few business days.',                                           speed:'4–5 business days', speedColor:C.gray600,  speedBg:C.gray100,  fee:'No fee',                  feeColor:C.gray500,  feeBg:C.gray100 },
   ];
@@ -1197,8 +1200,6 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
   const [editBankDetails, setEditBankDetails] = useState(false);
   const [routingVal,      setRoutingVal]       = useState(VENDOR.routing);
   const [accountVal,      setAccountVal]       = useState(VENDOR.account);
-  const [accountType,     setAccountType]      = useState<'checking'|'savings'|'business'>('checking');
-
   // Live routing lookup — resolves in real time as vendor types
   const resolvedBank = ROUTING_BANKS[routingVal] ?? (routingVal.length === 9 ? 'Routing number not found' : null);
 
@@ -1343,7 +1344,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                   {resolvedBank && resolvedBank !== 'Routing number not found' ? resolvedBank : 'Your Bank'}
                 </div>
                 <div style={{ fontSize:12, color:C.gray500, fontFamily:'Montserrat,sans-serif' }}>
-                  {accountType.charAt(0).toUpperCase()+accountType.slice(1)} Account · Direct Deposit
+                  Direct Deposit
                 </div>
               </div>
             </div>
@@ -1363,19 +1364,6 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
           <InfoBox bg={C.green50} border={C.green100} icon={<Shield size={17} color={C.green}/>}
             title="Your bank details are pre-filled"
             body={`Pre-filled from your records with ${VENDOR.mc}. Verify they're still accurate — a single digit difference can cause a payment return.`} />
-
-          {/* ── Account Type selector ──────────────────────────────────── */}
-          <div style={{ marginBottom:13 }}>
-            <label style={{ fontSize:12, fontWeight:600, color:C.gray700, display:'block', marginBottom:6, fontFamily:'Montserrat,sans-serif' }}>Account Type</label>
-            <div style={{ display:'flex', gap:8 }}>
-              {(['checking','savings','business'] as const).map(t => (
-                <button key={t} onClick={()=>setAccountType(t)}
-                  style={{ flex:1, padding:'9px 6px', borderRadius:8, border:`2px solid ${accountType===t ? C.blue : C.gray200}`, background:accountType===t ? C.blue50 : C.white, color:accountType===t ? C.blue : C.gray600, fontSize:12, fontWeight:accountType===t?700:500, cursor:'pointer', fontFamily:'Montserrat,sans-serif', transition:'all 0.15s' }}>
-                  {t.charAt(0).toUpperCase()+t.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* ── Routing + Account — linked edit (single Save) ──────────── */}
           {editBankDetails ? (
@@ -1462,7 +1450,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
             const CHECK_NAVY = '#1B2B6B';
             return (
               <div style={{ marginBottom:20 }}>
-                <div style={{ border:`2px solid ${CHECK_NAVY}`, borderRadius:4, overflow:'hidden', background:'#D9E6F5', display:'flex', flexDirection:'column' }}>
+                <div style={{ border:`2px solid ${CHECK_NAVY}`, borderRadius:4, overflow:'hidden', background:'#F4F2EC', display:'flex', flexDirection:'column' }}>
 
                   {/* Top security strip */}
                   <div style={{ background:CHECK_NAVY, padding:'5px 14px', textAlign:'center' }}>
@@ -1585,7 +1573,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                       A USPS-verified address is available
                     </div>
                     <div style={{ fontSize:12, color:'#B45309', lineHeight:1.55, marginBottom:9, fontFamily:'Montserrat,sans-serif' }}>
-                      Address mismatches are one of the most common causes of check delays. We've found a standardised version of your address — review it to help make sure your payment arrives on time.
+                      We found a USPS-verified version of your address. Review it to help ensure your check is delivered on time.
                     </div>
                     <button
                       onClick={()=>setUspsState('suggestion')}
@@ -1663,9 +1651,8 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
               <span style={{ fontSize:12, fontWeight:600, color:C.blue, fontFamily:'Montserrat,sans-serif' }}>{labels[method]}</span>
             </div>
             {method === 'sameday' && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:C.amber50, borderRadius:7, padding:'4px 12px', border:`1px solid ${C.amber100}` }}>
-                <DollarSign size={11} color={C.amber500}/>
-                <span style={{ fontSize:12, fontWeight:600, color:'#B45309', fontFamily:'Montserrat,sans-serif' }}>1% fee · max $25 per transaction</span>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+                <span style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif' }}>1% fee · max $25 per transaction</span>
               </div>
             )}
           </div>
