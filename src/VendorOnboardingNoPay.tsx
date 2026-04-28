@@ -903,12 +903,23 @@ const EmailScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
         <p style={{ fontSize:15, color:C.gray900, margin:'0 0 12px', fontFamily:'Montserrat,sans-serif' }}>
           Hi <strong>{VENDOR.contact}</strong>,
         </p>
-        <p style={{ fontSize:14, color:C.gray700, lineHeight:1.7, margin:'0 0 10px', fontFamily:'Montserrat,sans-serif' }}>
-          <strong>{VENDOR.mc}</strong> uses <strong>Vantaca Vendor</strong> to process all vendor payments. To ensure your payments arrive without delay, take two minutes now to set your preferred payment method.
+        <p style={{ fontSize:14, color:C.gray700, lineHeight:1.7, margin:'0 0 16px', fontFamily:'Montserrat,sans-serif' }}>
+          <strong>{VENDOR.mc}</strong> uses <strong>Vantaca Vendor</strong> to process all vendor payments. To ensure your payments arrive without delay, take two minutes now to confirm your preferred payment method.
         </p>
-        <p style={{ fontSize:14, color:C.gray700, lineHeight:1.7, margin:'0 0 28px', fontFamily:'Montserrat,sans-serif' }}>
-          No password required. One setup covers every management company you work with on Vantaca.
-        </p>
+
+        {/* Profile completion signal — MC pre-filled the account, vendor just needs to confirm */}
+        <div style={{ background:C.green50, border:`1px solid ${C.green100}`, borderRadius:10, padding:'13px 16px', marginBottom:20 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <span style={{ fontSize:12, fontWeight:700, color:C.green600, fontFamily:'Montserrat,sans-serif' }}>Your profile is 90% complete</span>
+            <span style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif' }}>1 step left</span>
+          </div>
+          <div style={{ background:C.green100, borderRadius:4, height:5, overflow:'hidden', marginBottom:8 }}>
+            <div style={{ background:C.green, width:'90%', height:'100%', borderRadius:4 }} />
+          </div>
+          <div style={{ fontSize:12, color:C.gray600, lineHeight:1.5, fontFamily:'Montserrat,sans-serif' }}>
+            <strong>{VENDOR.mc}</strong> has already set up your account — just confirm your payment preference and you're done.
+          </div>
+        </div>
 
         {/* CTA */}
         <div style={{ textAlign:'center', marginBottom:28 }}>
@@ -1054,22 +1065,28 @@ const LandingScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
           <h1 style={{ fontSize:isMobile?22:26, fontWeight:700, color:C.darkBlue, margin:'0 0 10px', letterSpacing:'-0.02em', fontFamily:'Montserrat,sans-serif' }}>
             Welcome, {VENDOR.contact} 👋
           </h1>
-          <p style={{ fontSize:14, color:C.gray600, lineHeight:1.7, margin:'0 0 6px', fontFamily:'Montserrat,sans-serif' }}>
-            You're in — <strong>no password needed today.</strong>
-          </p>
           <p style={{ fontSize:14, color:C.gray600, lineHeight:1.7, margin:'0 0 22px', fontFamily:'Montserrat,sans-serif' }}>
             Set your payment preference once and every management company you work with on Vantaca will use it automatically — no repeat setup required.
           </p>
 
-          {/* Global vendor callout */}
-          <div style={{ background:C.blue50, border:`1px solid ${C.blue100}`, borderRadius:12, padding:'15px 17px', marginBottom:22 }}>
+          {/* MC profile completion card — attributes pre-filled data to the MC */}
+          <div style={{ background:C.green50, border:`1px solid ${C.green100}`, borderRadius:12, padding:'15px 17px', marginBottom:22 }}>
             <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
-              <div style={{ width:38, height:38, borderRadius:9, background:C.blue, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <Users size={18} color={C.white} />
+              <div style={{ width:38, height:38, borderRadius:9, background:C.green, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <CheckCircle size={18} color={C.white} />
               </div>
-              <div>
-                <div style={{ fontSize:13, fontWeight:700, color:C.darkBlue, marginBottom:3, fontFamily:'Montserrat,sans-serif' }}>One setup — all your HOA clients</div>
-                <div style={{ fontSize:12, color:C.gray600, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>Your preference applies across every property management company on Vantaca. Set it once, get paid consistently everywhere.</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif' }}>Your profile is 90% complete</div>
+                  <div style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif', flexShrink:0, marginLeft:8 }}>1 step left</div>
+                </div>
+                {/* Progress bar */}
+                <div style={{ background:C.green100, borderRadius:4, height:6, overflow:'hidden', marginBottom:8 }}>
+                  <div style={{ background:C.green, width:'90%', height:'100%', borderRadius:4 }} />
+                </div>
+                <div style={{ fontSize:12, color:C.gray600, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
+                  <strong>{VENDOR.mc}</strong> has pre-filled your account details. Just confirm your payment preference below to finish.
+                </div>
               </div>
             </div>
           </div>
@@ -1097,8 +1114,8 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
   }[] = [
     { id:'card',    icon:<CreditCard size={20}/>, title:'Digital Card',           sub:'A virtual card is sent to your email the instant a payment is approved. Use it online immediately or add to Apple/Google Pay.',    speed:'Instant',           speedColor:C.green600, speedBg:C.green50, tag:'FASTEST · RECOMMENDED', tagColor:C.green600, tagBg:C.green50 },
     { id:'sameday', icon:<Zap size={20}/>,        title:'Same-Day Bank Transfer', sub:'Funds deposited directly into your bank account by the end of the same business day.',                                             speed:'Same business day', speedColor:'#B45309',  speedBg:C.amber50, tag:'Fast',                  tagColor:C.amber500, tagBg:C.amber50  },
-    { id:'ach',     icon:<Landmark size={20}/>,   title:'Standard Bank Transfer', sub:'Free ACH deposit to your bank — a reliable option that clears in a few business days.',                                           speed:'3–5 business days', speedColor:C.gray600,  speedBg:C.gray100 },
     { id:'check',   icon:<Truck size={20}/>,      title:'Paper Check',            sub:'A physical check mailed to your address on file. Subject to postal delays.',                                                       speed:'7–10 business days',speedColor:C.gray500,  speedBg:C.gray100, warning:'Slowest option. Postal delays may apply.' },
+    { id:'ach',     icon:<Landmark size={20}/>,   title:'Standard Bank Transfer', sub:'Free ACH deposit to your bank — a reliable option that clears in a few business days.',                                           speed:'3–5 business days', speedColor:C.gray600,  speedBg:C.gray100 },
   ];
 
   return (
@@ -1234,9 +1251,60 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
     switch(method) {
       case 'card': return (
         <>
+          {/* Mock Visa card illustration */}
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:20 }}>
+            <div style={{
+              width: isMobile ? 280 : 320,
+              height: isMobile ? 176 : 202,
+              borderRadius: 16,
+              background: `linear-gradient(135deg, ${C.darkBlue} 0%, #1a5276 55%, #00679B 100%)`,
+              boxShadow: '0 8px 24px rgba(16,24,40,0.22), 0 2px 6px rgba(16,24,40,0.14)',
+              padding: '22px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}>
+              {/* Decorative circles */}
+              <div style={{ position:'absolute', top:-28, right:-28, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.06)' }}/>
+              <div style={{ position:'absolute', top:20, right:20, width:72, height:72, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }}/>
+
+              {/* Top row: chip + Visa */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', position:'relative', zIndex:1 }}>
+                {/* EMV chip */}
+                <div style={{ width:36, height:28, borderRadius:5, background:'linear-gradient(135deg,#d4a843 0%,#f0cb6a 40%,#c8952a 100%)', boxShadow:'0 1px 3px rgba(0,0,0,0.3)' }}/>
+                {/* Visa wordmark */}
+                <div style={{ fontSize: isMobile?20:23, fontWeight:900, color:C.white, fontFamily:'serif', letterSpacing:'0.01em', lineHeight:1, textShadow:'0 1px 2px rgba(0,0,0,0.3)', fontStyle:'italic' }}>VISA</div>
+              </div>
+
+              {/* PAN */}
+              <div style={{ position:'relative', zIndex:1 }}>
+                <div style={{ fontSize: isMobile?15:17, fontWeight:600, color:'rgba(255,255,255,0.92)', fontFamily:'monospace', letterSpacing:'0.18em' }}>
+                  •••• &nbsp;•••• &nbsp;•••• &nbsp;1234
+                </div>
+              </div>
+
+              {/* Bottom row: name + expiry */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', position:'relative', zIndex:1 }}>
+                <div>
+                  <div style={{ fontSize:9, color:'rgba(255,255,255,0.5)', fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', marginBottom:3, textTransform:'uppercase' }}>Card Holder</div>
+                  <div style={{ fontSize: isMobile?11:12, fontWeight:700, color:C.white, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase' }}>
+                    {VENDOR.contact.toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ textAlign:'right' }}>
+                  <div style={{ fontSize:9, color:'rgba(255,255,255,0.5)', fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', marginBottom:3, textTransform:'uppercase' }}>Expires</div>
+                  <div style={{ fontSize: isMobile?11:12, fontWeight:700, color:C.white, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.1em' }}>••/••</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <InfoBox bg={C.blue50} border={C.blue100} icon={<CreditCard size={17} color={C.blue}/>}
             title="How digital cards work"
-            body="When a payment is approved, a virtual card is sent to the email below. Use it online immediately or add to Apple/Google Pay." />
+            body="When a payment is approved, a virtual card like the one above is sent to the email below. Use it online immediately or add to Apple/Google Pay." />
           <label style={{ fontSize:12, fontWeight:600, color:C.gray700, display:'block', marginBottom:6, fontFamily:'Montserrat,sans-serif' }}>Card delivery email</label>
           {editEmail
             ? <input value={emailVal} onChange={e=>setEmailVal(e.target.value)} autoFocus
@@ -1257,7 +1325,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
         <>
           <InfoBox bg={C.green50} border={C.green100} icon={<Shield size={17} color={C.green}/>}
             title="Your bank details are pre-filled"
-            body="Verify the details below are correct. All data is encrypted with bank-level security." />
+            body={`Confirming your routing number helps prevent payment delays — even a single digit difference can cause a return. All data is encrypted with bank-level security.`} />
           {/* Bank name — live resolved from routing number */}
           {resolvedBank && (
             <div style={{ background: resolvedBank === 'Routing number not found' ? C.amber50 : C.blue50, border:`1px solid ${resolvedBank === 'Routing number not found' ? C.amber100 : C.blue100}`, borderRadius:9, padding:'11px 15px', marginBottom:14, display:'flex', gap:10, alignItems:'center', transition:'background 0.2s' }}>
@@ -1361,7 +1429,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
         <>
           <InfoBox bg={C.gray50} border={C.gray200} icon={<MapPin size={17} color={C.blue}/>}
             title="Your mailing address on file"
-            body="Checks will be mailed to the address below. Updates take effect on the next payment cycle." />
+            body="Checks will be mailed to the address below. We automatically verify it against USPS records — getting this right means no delays on your first payment." />
           {!editAddr ? (
             <>
               <div style={{ border:`1px solid ${C.gray200}`, borderRadius:10, padding:'14px 16px', background:C.gray50, marginBottom:14 }}>
@@ -1389,7 +1457,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                       A USPS-verified address is available
                     </div>
                     <div style={{ fontSize:12, color:'#B45309', lineHeight:1.55, marginBottom:9, fontFamily:'Montserrat,sans-serif' }}>
-                      We found a standardised version of your mailing address. Review the suggestion to help ensure your check is delivered without delay.
+                      Address mismatches are one of the most common causes of check delays. We've found a standardised version of your address — review it to help make sure your payment arrives on time.
                     </div>
                     <button
                       onClick={()=>setUspsState('suggestion')}
