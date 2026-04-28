@@ -912,7 +912,7 @@ const EmailScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
           <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
             <div style={{ marginTop:2, flexShrink:0 }}><CheckCircle size={16} color={C.blue}/></div>
             <div style={{ fontSize:12, color:C.gray700, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
-              <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. To complete your setup, select your preferred payment method below.
+              <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. To complete your setup, select your preferred payment method by clicking the button below.
             </div>
           </div>
         </div>
