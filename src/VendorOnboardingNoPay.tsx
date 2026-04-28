@@ -1323,6 +1323,55 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
       case 'sameday':
       case 'ach': return (
         <>
+          {/* Bank Account Card — same proportions as Visa card, white body + dark stripe header */}
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:20 }}>
+            <div style={{
+              width: isMobile ? 280 : 320,
+              height: isMobile ? 176 : 202,
+              borderRadius: 16,
+              background: C.white,
+              boxShadow: '0 8px 24px rgba(16,24,40,0.18), 0 2px 6px rgba(16,24,40,0.10)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              flexShrink: 0,
+              border: `1px solid ${C.gray200}`,
+            }}>
+              {/* Dark stripe header */}
+              <div style={{ background: C.darkBlue, padding:'10px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+                <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.85)', fontFamily:'Montserrat,sans-serif', letterSpacing:'0.12em', textTransform:'uppercase' }}>Direct Deposit</span>
+                <Landmark size={15} color="rgba(255,255,255,0.7)"/>
+              </div>
+
+              {/* Card body */}
+              <div style={{ flex:1, padding:'16px 18px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+                {/* Bank name — live from routing lookup */}
+                <div>
+                  <div style={{ fontSize: isMobile ? 16 : 18, fontWeight:700, color: resolvedBank && resolvedBank !== 'Routing number not found' ? C.darkBlue : C.gray400, fontFamily:'Montserrat,sans-serif', marginBottom:3, transition:'color 0.2s' }}>
+                    {resolvedBank && resolvedBank !== 'Routing number not found' ? resolvedBank : 'Your Bank'}
+                  </div>
+                  <div style={{ fontSize:12, color:C.gray500, fontFamily:'Montserrat,sans-serif' }}>Checking Account</div>
+                </div>
+
+                {/* Masked routing + account */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+                  <div>
+                    <div style={{ fontSize:9, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:3 }}>Routing</div>
+                    <div style={{ fontSize: isMobile ? 11 : 12, fontWeight:600, color:C.gray600, fontFamily:'monospace', letterSpacing:'0.06em' }}>
+                      •••••{VENDOR.routing.slice(-4)}
+                    </div>
+                  </div>
+                  <div style={{ textAlign:'right' }}>
+                    <div style={{ fontSize:9, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:3 }}>Account</div>
+                    <div style={{ fontSize: isMobile ? 11 : 12, fontWeight:600, color:C.gray600, fontFamily:'monospace', letterSpacing:'0.06em' }}>
+                      ••••••{VENDOR.account.slice(-4)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <InfoBox bg={C.green50} border={C.green100} icon={<Shield size={17} color={C.green}/>}
             title="Your bank details are pre-filled"
             body={`Confirming your routing number helps prevent payment delays — even a single digit difference can cause a return. All data is encrypted with bank-level security.`} />
@@ -1427,6 +1476,89 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
       );
       case 'check': return (
         <>
+          {/* Paper Check Mockup — Grasshopper Bank format, authentic proportions */}
+          {(() => {
+            const today = new Date();
+            const issued = today.toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
+            const valid  = new Date(today.setMonth(today.getMonth()+6)).toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
+            const displayAddr = uspsChoice === 'usps' && (uspsState === 'confirmed' || uspsState === 'suggestion')
+              ? `${MOCK_USPS.street}, ${MOCK_USPS.city}, ${MOCK_USPS.state} ${MOCK_USPS.zip}`
+              : `${addrStreet}, ${addrCity}, ${addrState} ${addrZip}`;
+            return (
+              <div style={{ marginBottom:20 }}>
+                <div style={{ border:`2px solid ${C.darkBlue}`, borderRadius:6, overflow:'hidden', background:'#E8EDF8', maxWidth:540 }}>
+
+                  {/* Top security strip */}
+                  <div style={{ background:C.darkBlue, padding:'4px 10px' }}>
+                    <span style={{ fontSize:8, color:'rgba(255,255,255,0.8)', fontFamily:'monospace', letterSpacing:'0.04em' }}>
+                      THE FACE OF THIS CHECK HAS A SECURITY VOID BACKGROUND PATTERN — DO NOT CASH IF THE VOID IS VISIBLE.
+                    </span>
+                  </div>
+
+                  {/* Check body */}
+                  <div style={{ padding:'10px 16px 8px' }}>
+
+                    {/* Row 1: MC name | Bank | Check number */}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', maxWidth:'35%' }}>
+                        {VENDOR.mc}
+                      </div>
+                      <div style={{ textAlign:'center' }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif' }}>Grasshopper Bank</div>
+                        <div style={{ fontSize:9, color:C.gray600, fontFamily:'Montserrat,sans-serif' }}>New York, NY</div>
+                      </div>
+                      <div style={{ textAlign:'right', fontSize:9, color:C.gray700, fontFamily:'Montserrat,sans-serif', lineHeight:1.7 }}>
+                        <div style={{ fontWeight:700 }}>No. 5053</div>
+                        <div>Issued: {issued}</div>
+                        <div>Valid until: {valid}</div>
+                      </div>
+                    </div>
+
+                    {/* Row 2: PAY + amount */}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', marginBottom:2 }}>PAY</div>
+                        <div style={{ fontSize:9, color:C.gray500, fontFamily:'Montserrat,sans-serif', fontStyle:'italic' }}>Amount confirmed at payment approval</div>
+                      </div>
+                      <div style={{ border:`1.5px solid ${C.darkBlue}`, borderRadius:3, padding:'4px 12px', minWidth:80, textAlign:'center' }}>
+                        <span style={{ fontSize:13, fontWeight:700, color:C.gray400, fontFamily:'Montserrat,sans-serif' }}>$ —</span>
+                      </div>
+                    </div>
+
+                    {/* Row 3: TO THE ORDER OF + signature */}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:6 }}>
+                      <div>
+                        <div style={{ fontSize:8, fontWeight:700, color:C.gray600, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:2 }}>To the Order of</div>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', marginBottom:2 }}>{VENDOR.name}</div>
+                        <div style={{ fontSize:9, color:C.gray600, fontFamily:'Montserrat,sans-serif' }}>{displayAddr}</div>
+                      </div>
+                      <div style={{ textAlign:'right', borderTop:`1px solid ${C.gray500}`, paddingTop:3, minWidth:120 }}>
+                        <div style={{ fontSize:11, color:C.darkBlue, fontFamily:'Georgia,serif', fontStyle:'italic' }}>No Signature Required</div>
+                      </div>
+                    </div>
+
+                    {/* Memo */}
+                    <div style={{ fontSize:9, color:C.gray500, fontFamily:'Montserrat,sans-serif', textAlign:'center' }}>
+                      <strong>Memo:</strong> Invoice payment — {VENDOR.mc}
+                    </div>
+                  </div>
+
+                  {/* Bottom security strip */}
+                  <div style={{ background:C.darkBlue, padding:'4px 10px' }}>
+                    <span style={{ fontSize:8, color:'rgba(255,255,255,0.8)', fontFamily:'monospace', letterSpacing:'0.03em' }}>
+                      THE ORIGINAL DOCUMENT HAS A REFLECTIVE WATERMARK ON THE BACK. — HOLD AT AN ANGLE TO VIEW WHEN CHECKING THE ENDORSEMENT.
+                    </span>
+                  </div>
+                </div>
+
+                {/* MICR line */}
+                <div style={{ padding:'5px 10px 0', fontSize:11, color:C.gray500, fontFamily:'monospace', letterSpacing:'0.12em', textAlign:'center' }}>
+                  ⑆•••••{VENDOR.routing.slice(-4)}⑆ &nbsp;⑈••••••{VENDOR.account.slice(-4)}⑈ &nbsp;0005053⑇
+                </div>
+              </div>
+            );
+          })()}
+
           <InfoBox bg={C.gray50} border={C.gray200} icon={<MapPin size={17} color={C.blue}/>}
             title="Your mailing address on file"
             body="Checks will be mailed to the address below. We automatically verify it against USPS records — getting this right means no delays on your first payment." />
