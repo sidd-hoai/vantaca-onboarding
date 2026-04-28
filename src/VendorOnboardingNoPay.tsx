@@ -1439,14 +1439,17 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
             const today = new Date();
             const issued = today.toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
             const valid  = new Date(today.setMonth(today.getMonth()+6)).toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
-            const CHECK_NAVY = '#1B2B6B';
-            const CHECK_BG   = '#F7F6F2';
+            const CHECK_NAVY  = '#1B2B6B';   // text colour only
+            const CHECK_STRIP = '#374151';   // security strip bg — charcoal gray, not navy
+            const CHECK_BG    = '#F7F6F2';
+            const MICR_ROUTING = '000000000';   // dummy — not a real routing number
+            const MICR_ACCOUNT = '000000000000'; // dummy account
             return (
               <div style={{ marginBottom:20 }}>
                 <div style={{ border:`2px solid #6B7280`, borderRadius:4, overflow:'hidden', background:CHECK_BG, display:'flex', flexDirection:'column' }}>
 
                   {/* Top security strip */}
-                  <div style={{ background:CHECK_NAVY, padding:'5px 14px', textAlign:'center' }}>
+                  <div style={{ background:CHECK_STRIP, padding:'5px 14px', textAlign:'center' }}>
                     <span style={{ fontSize:8.5, color:'rgba(255,255,255,0.9)', fontFamily:'monospace', letterSpacing:'0.05em', textTransform:'uppercase' }}>
                       THE FACE OF THIS CHECK HAS A SECURITY VOID BACKGROUND PATTERN — DO NOT CASH IF THE VOID IS VISIBLE.
                     </span>
@@ -1497,12 +1500,12 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
 
                       {/* Memo */}
                       <div style={{ fontSize:9.5, color:'#4A5568', fontFamily:'Montserrat,sans-serif', textAlign:'center' }}>
-                        <strong>Memo:</strong> Account No: {VENDOR.account}
+                        <strong>Memo:</strong> Account No: {MICR_ACCOUNT}
                       </div>
                     </div>
 
                     {/* Right security strip — rotated text */}
-                    <div style={{ width:18, background:CHECK_NAVY, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <div style={{ width:18, background:CHECK_STRIP, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <span style={{ fontSize:7, color:'rgba(255,255,255,0.7)', fontFamily:'monospace', letterSpacing:'0.04em', transform:'rotate(90deg)', whiteSpace:'nowrap' }}>
                         SECURITY FEATURES · DETAILS ON BACK
                       </span>
@@ -1510,7 +1513,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                   </div>
 
                   {/* Bottom security strip — two columns */}
-                  <div style={{ background:CHECK_NAVY, padding:'5px 14px', display:'flex', justifyContent:'space-between' }}>
+                  <div style={{ background:CHECK_STRIP, padding:'5px 14px', display:'flex', justifyContent:'space-between' }}>
                     <span style={{ fontSize:8.5, color:'rgba(255,255,255,0.9)', fontFamily:'monospace', letterSpacing:'0.04em' }}>
                       THE ORIGINAL DOCUMENT HAS A REFLECTIVE WATERMARK ON THE BACK.
                     </span>
@@ -1520,9 +1523,9 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
                   </div>
                 </div>
 
-                {/* MICR line — full unmasked numbers */}
+                {/* MICR line — dummy numbers only, never real bank/account data */}
                 <div style={{ padding:'7px 10px 0', fontSize:12, color:'#4A5568', fontFamily:'monospace', letterSpacing:'0.15em', textAlign:'center' }}>
-                  ⑆{VENDOR.routing}⑆ &nbsp;⑈{VENDOR.account}⑈ &nbsp;0005053⑇
+                  ⑆{MICR_ROUTING}⑆ &nbsp;⑈{MICR_ACCOUNT}⑈ &nbsp;0005053⑇
                 </div>
               </div>
             );
