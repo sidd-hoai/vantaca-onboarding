@@ -44,8 +44,8 @@ const VENDOR = {
   phone:       '(415) 882-3341',
   address:     '2847 Oak Grove Ave, Walnut Creek, CA 94597',
   mc:          'Pacific Coast Property Management',
-  routingMask: '\u2022\u2022\u2022\u2022 1234',
-  accountMask: '\u2022\u2022\u2022\u2022\u2022\u2022 5678',
+  routingMask: '\u2022\u2022\u2022\u2022\u2022 0248',
+  accountMask: '\u2022\u2022\u2022\u2022\u2022\u2022 9128',
   routing:     '121000248',
   account:     '4782039128',
 };
