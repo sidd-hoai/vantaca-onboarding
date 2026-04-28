@@ -1105,7 +1105,7 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
     tag?:string; tagColor?:string; tagBg?:string; warning?:string;
   }[] = [
     { id:'card',    icon:<CreditCard size={20}/>, title:'Digital Card',           sub:'A virtual card is sent to your email the instant a payment is approved. Funds are available to be used immediately.',               speed:'Instant',           speedColor:C.green600, speedBg:C.green50,  fee:'Standard Processing Fee', feeColor:C.gray500,  feeBg:C.gray100, feeInfo:'This is a single-use card issued only for this invoice. It must be processed through your merchant system.', tag:'FASTEST · RECOMMENDED', tagColor:C.green600, tagBg:C.green50 },
-    { id:'sameday', icon:<Zap size={20}/>,        title:'Same-Day Bank Transfer', sub:'Funds deposited directly into your bank account by the end of the same business day.',                                             speed:'Same business day', speedColor:C.blue,     speedBg:C.blue50,   fee:'1% fee · max $25',        feeColor:C.gray500,  feeBg:C.gray100,  tag:'Fast',                  tagColor:C.blue,     tagBg:C.blue50   },
+    { id:'sameday', icon:<Zap size={20}/>,        title:'Same-Day Bank Transfer', sub:'Funds deposited directly into your bank account by the end of the same business day.',                                             speed:'Same business day', speedColor:'#7C3AED',  speedBg:'#F5F3FF',  fee:'1% fee · max $25',        feeColor:C.gray500,  feeBg:C.gray100,  tag:'Fast',                  tagColor:'#7C3AED',  tagBg:'#F5F3FF'  },
     { id:'check',   icon:<Truck size={20}/>,      title:'Paper Check',            sub:'A physical check mailed to your address on file. Subject to postal delays.',                                                       speed:'7–10 business days',speedColor:C.gray500,  speedBg:C.gray100,  fee:'No fee',                  feeColor:C.gray500,  feeBg:C.gray100, warning:'Slowest option. Postal delays may apply.' },
     { id:'ach',     icon:<Landmark size={20}/>,   title:'Standard Bank Transfer', sub:'Free ACH deposit to your bank — a reliable option that clears in a few business days.',                                           speed:'4–5 business days', speedColor:C.gray600,  speedBg:C.gray100,  fee:'No fee',                  feeColor:C.gray500,  feeBg:C.gray100 },
   ];
@@ -1649,7 +1649,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
               <span style={{ fontSize:12, fontWeight:600, color:C.blue, fontFamily:'Montserrat,sans-serif' }}>{labels[method]}</span>
             </div>
             {method === 'sameday' && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:C.gray100, borderRadius:6, padding:'3px 9px' }}>
                 <span style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif' }}>1% fee · max $25 per transaction</span>
               </div>
             )}
