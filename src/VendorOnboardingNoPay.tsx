@@ -1090,13 +1090,6 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
   const [sel, setSel] = useState<Method>('card');
   const [openFeeTooltip, setOpenFeeTooltip] = useState<Method|null>(null);
 
-  // Close tooltip on any click outside the help button
-  useEffect(() => {
-    if (!openFeeTooltip) return;
-    const close = () => setOpenFeeTooltip(null);
-    window.addEventListener('click', close);
-    return () => window.removeEventListener('click', close);
-  }, [openFeeTooltip]);
 
   const methods: {
     id:Method; icon:React.ReactNode; title:string; sub:string;
@@ -1139,13 +1132,14 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
                         <Clock size={11} color={m.speedColor}/>
                         <span style={{ fontSize:11, fontWeight:600, color:m.speedColor, fontFamily:'Montserrat,sans-serif' }}>{m.speed}</span>
                       </div>
-                      <div style={{ position:'relative', display:'inline-flex', alignItems:'center' }}>
+                      <div
+                        style={{ position:'relative', display:'inline-flex', alignItems:'center' }}
+                        onMouseEnter={()=>m.feeInfo ? setOpenFeeTooltip(m.id) : undefined}
+                        onMouseLeave={()=>setOpenFeeTooltip(null)}>
                         <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:m.feeBg, borderRadius:6, padding:'3px 9px' }}>
                           <span style={{ fontSize:11, fontWeight:600, color:m.feeColor, fontFamily:'Montserrat,sans-serif' }}>{m.fee}</span>
                           {m.feeInfo && (
-                            <div
-                              onClick={(e)=>{ e.stopPropagation(); setOpenFeeTooltip(openFeeTooltip===m.id?null:m.id); }}
-                              style={{ display:'inline-flex', alignItems:'center', cursor:'pointer', marginLeft:2 }}>
+                            <div style={{ display:'inline-flex', alignItems:'center', marginLeft:2 }}>
                               <HelpCircle size={11} color={m.feeColor}/>
                             </div>
                           )}
@@ -1446,9 +1440,10 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
             const issued = today.toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
             const valid  = new Date(today.setMonth(today.getMonth()+6)).toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
             const CHECK_NAVY = '#1B2B6B';
+            const CHECK_BG   = '#F7F6F2';
             return (
               <div style={{ marginBottom:20 }}>
-                <div style={{ border:`2px solid ${CHECK_NAVY}`, borderRadius:4, overflow:'hidden', background:'#F4F2EC', display:'flex', flexDirection:'column' }}>
+                <div style={{ border:`2px solid #6B7280`, borderRadius:4, overflow:'hidden', background:CHECK_BG, display:'flex', flexDirection:'column' }}>
 
                   {/* Top security strip */}
                   <div style={{ background:CHECK_NAVY, padding:'5px 14px', textAlign:'center' }}>
