@@ -912,7 +912,7 @@ const EmailScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
           <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
             <div style={{ marginTop:2, flexShrink:0 }}><CheckCircle size={16} color={C.blue}/></div>
             <div style={{ fontSize:12, color:C.gray700, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
-              <strong>{VENDOR.mc}</strong> has shared your business information with Vantaca. Just select your payment method below and you're done.
+              <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. To complete your setup, select your preferred payment method below.
             </div>
           </div>
         </div>
@@ -1073,7 +1073,7 @@ const LandingScreen: React.FC<{ onNext:()=>void }> = ({ onNext }) => {
             <div style={{ display:'flex', gap:11, alignItems:'flex-start' }}>
               <div style={{ marginTop:2, flexShrink:0 }}><CheckCircle size={16} color={C.blue}/></div>
               <div style={{ fontSize:12, color:C.gray700, lineHeight:1.55, fontFamily:'Montserrat,sans-serif' }}>
-                <strong>{VENDOR.mc}</strong> has shared your business details with Vantaca. Just select your payment preference below to finish.
+                <strong>{VENDOR.mc}</strong> has provided your business details to Vantaca. Select your preferred payment method below to complete your setup.
               </div>
             </div>
           </div>
@@ -1093,6 +1093,7 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
   const w = useWindowWidth();
   const isMobile = w < 640;
   const [sel, setSel] = useState<Method>('card');
+  const [openFeeTooltip, setOpenFeeTooltip] = useState<Method|null>(null);
 
   const methods: {
     id:Method; icon:React.ReactNode; title:string; sub:string;
@@ -1135,10 +1136,23 @@ const MethodScreen: React.FC<{ onNext:(m:Method)=>void }> = ({ onNext }) => {
                         <Clock size={11} color={m.speedColor}/>
                         <span style={{ fontSize:11, fontWeight:600, color:m.speedColor, fontFamily:'Montserrat,sans-serif' }}>{m.speed}</span>
                       </div>
-                      <div title={m.feeInfo} style={{ display:'inline-flex', alignItems:'center', gap:4, background:m.feeBg, borderRadius:6, padding:'3px 9px', cursor:m.feeInfo?'help':'default' }}>
-                        <DollarSign size={10} color={m.feeColor}/>
-                        <span style={{ fontSize:11, fontWeight:600, color:m.feeColor, fontFamily:'Montserrat,sans-serif' }}>{m.fee}</span>
-                        {m.feeInfo && <HelpCircle size={10} color={m.feeColor}/>}
+                      <div style={{ position:'relative', display:'inline-flex', alignItems:'center' }}>
+                        <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:m.feeBg, borderRadius:6, padding:'3px 9px' }}>
+                          <span style={{ fontSize:11, fontWeight:600, color:m.feeColor, fontFamily:'Montserrat,sans-serif' }}>{m.fee}</span>
+                          {m.feeInfo && (
+                            <div
+                              onClick={(e)=>{ e.stopPropagation(); setOpenFeeTooltip(openFeeTooltip===m.id?null:m.id); }}
+                              style={{ display:'inline-flex', alignItems:'center', cursor:'pointer', marginLeft:2 }}>
+                              <HelpCircle size={11} color={m.feeColor}/>
+                            </div>
+                          )}
+                        </div>
+                        {openFeeTooltip===m.id && m.feeInfo && (
+                          <div style={{ position:'absolute', bottom:'calc(100% + 6px)', left:0, background:C.gray900, color:C.white, fontSize:11, padding:'8px 11px', borderRadius:7, width:220, zIndex:20, lineHeight:1.55, fontFamily:'Montserrat,sans-serif', boxShadow:'0 4px 12px rgba(0,0,0,0.25)' }}>
+                            {m.feeInfo}
+                            <div style={{ position:'absolute', top:'100%', left:14, width:0, height:0, borderLeft:'5px solid transparent', borderRight:'5px solid transparent', borderTop:`5px solid ${C.gray900}` }}/>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {m.warning && isSelected && (
@@ -1318,58 +1332,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
       case 'sameday':
       case 'ach': return (
         <>
-          {/* ── Design Option A: Deposit Slip ──────────────────────────── */}
-          <div style={{ fontSize:10, fontWeight:700, color:C.gray400, letterSpacing:'0.1em', textTransform:'uppercase', fontFamily:'Montserrat,sans-serif', marginBottom:6 }}>Design Option A</div>
-          <div style={{ borderLeft:`4px solid ${C.blue}`, background:'#F5F8FC', border:`1px solid #C7D2E4`, borderLeftWidth:4, borderRadius:'0 10px 10px 0', padding:'14px 18px', marginBottom:20 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <Landmark size={15} color={C.blue}/>
-                <span style={{ fontSize:10, fontWeight:700, color:C.blue, letterSpacing:'0.1em', textTransform:'uppercase', fontFamily:'Montserrat,sans-serif' }}>Direct Deposit</span>
-              </div>
-              <span style={{ fontSize:10, fontWeight:600, color:C.gray500, fontFamily:'Montserrat,sans-serif', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                {method==='sameday' ? 'Same-Day Transfer' : 'Standard ACH'}
-              </span>
-            </div>
-            <div style={{ fontSize:18, fontWeight:700, color: resolvedBank && resolvedBank !== 'Routing number not found' ? C.darkBlue : C.gray400, fontFamily:'Montserrat,sans-serif', marginBottom:3, transition:'color 0.2s' }}>
-              {resolvedBank && resolvedBank !== 'Routing number not found' ? resolvedBank : 'Your Bank'}
-            </div>
-            <div style={{ fontSize:12, color:C.gray500, fontFamily:'Montserrat,sans-serif', marginBottom:12 }}>
-              {accountType.charAt(0).toUpperCase()+accountType.slice(1)} Account
-            </div>
-            <div style={{ display:'flex', gap:28 }}>
-              <div>
-                <div style={{ fontSize:9, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:2 }}>Routing</div>
-                <div style={{ fontSize:13, fontWeight:600, color:C.gray700, fontFamily:'monospace' }}>•••••{VENDOR.routing.slice(-4)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize:9, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:2 }}>Account</div>
-                <div style={{ fontSize:13, fontWeight:600, color:C.gray700, fontFamily:'monospace' }}>••••••{VENDOR.account.slice(-4)}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Design Option B: Transfer Badge ────────────────────────── */}
-          <div style={{ fontSize:10, fontWeight:700, color:C.gray400, letterSpacing:'0.1em', textTransform:'uppercase', fontFamily:'Montserrat,sans-serif', margin:'0 0 6px' }}>Design Option B</div>
-          <div style={{ display:'flex', justifyContent:'center', marginBottom:20 }}>
-            <div style={{ background:C.white, borderRadius:20, border:`1px solid ${C.gray200}`, boxShadow:'0 4px 16px rgba(16,24,40,0.12)', padding:'24px 36px', minWidth:220, textAlign:'center' }}>
-              <div style={{ width:56, height:56, borderRadius:'50%', background:C.blue50, border:`2px solid ${C.blue100}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-                <Landmark size={28} color={C.blue}/>
-              </div>
-              <div style={{ fontSize:16, fontWeight:700, color: resolvedBank && resolvedBank !== 'Routing number not found' ? C.darkBlue : C.gray400, fontFamily:'Montserrat,sans-serif', marginBottom:4, transition:'color 0.2s' }}>
-                {resolvedBank && resolvedBank !== 'Routing number not found' ? resolvedBank : 'Your Bank'}
-              </div>
-              <div style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif', marginBottom:14 }}>
-                {accountType.charAt(0).toUpperCase()+accountType.slice(1)} Account
-              </div>
-              <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-                <span style={{ background:C.gray100, borderRadius:6, padding:'4px 10px', fontSize:11, fontFamily:'monospace', color:C.gray700 }}>•••••{VENDOR.routing.slice(-4)}</span>
-                <span style={{ background:C.gray100, borderRadius:6, padding:'4px 10px', fontSize:11, fontFamily:'monospace', color:C.gray700 }}>••••••{VENDOR.account.slice(-4)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Design Option C: Account Preview Row ───────────────────── */}
-          <div style={{ fontSize:10, fontWeight:700, color:C.gray400, letterSpacing:'0.1em', textTransform:'uppercase', fontFamily:'Montserrat,sans-serif', margin:'0 0 6px' }}>Design Option C</div>
+          {/* ── Bank Account Preview ────────────────────────────────────── */}
           <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.white, borderRadius:'0 10px 10px 0', padding:'16px 20px', marginBottom:20, boxShadow:Sh.sm }}>
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
               <div style={{ width:40, height:40, borderRadius:10, background:C.blue50, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -1399,7 +1362,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
           {/* ── Trust signal + InfoBox ──────────────────────────────────── */}
           <InfoBox bg={C.green50} border={C.green100} icon={<Shield size={17} color={C.green}/>}
             title="Your bank details are pre-filled"
-            body={`These details were pre-filled from information you previously provided to ${VENDOR.mc}. Confirming your account and routing number helps prevent payment delays — even a single digit difference can cause a return. All data is encrypted with bank-level security.`} />
+            body={`Pre-filled from your records with ${VENDOR.mc}. Verify they're still accurate — a single digit difference can cause a payment return.`} />
 
           {/* ── Account Type selector ──────────────────────────────────── */}
           <div style={{ marginBottom:13 }}>
@@ -1453,126 +1416,132 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
             </>
           ) : (
             <>
-              <div style={{ marginBottom:13 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:C.gray700, display:'block', marginBottom:6, fontFamily:'Montserrat,sans-serif' }}>Routing Number</label>
-                <div style={{ border:`1px solid ${C.gray200}`, borderRadius:8, padding:'10px 14px', background:C.gray50, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-                    <Landmark size={14} color={C.gray400}/>
-                    <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showR ? routingVal : VENDOR.routingMask}</span>
-                    <CheckCircle size={13} color={C.green}/>
+              <div style={{ border:`1px solid ${C.gray200}`, borderRadius:10, background:C.gray50, overflow:'hidden', marginBottom:6 }}>
+                {/* Routing row */}
+                <div style={{ padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${C.gray200}` }}>
+                  <div>
+                    <div style={{ fontSize:10, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:2 }}>Routing Number</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showR ? routingVal : VENDOR.routingMask}</span>
+                      <CheckCircle size={12} color={C.green}/>
+                    </div>
                   </div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <button onClick={()=>setShowR(!showR)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
-                      {showR?<EyeOff size={15}/>:<Eye size={15}/>}
-                    </button>
-                    <button onClick={()=>requestEdit('bankDetails')} style={{ background:'none', border:'none', cursor:'pointer', color:C.blue, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:3, fontFamily:'Montserrat,sans-serif' }}>
-                      <Edit2 size={12}/> Edit
-                    </button>
+                  <button onClick={()=>setShowR(!showR)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
+                    {showR?<EyeOff size={15}/>:<Eye size={15}/>}
+                  </button>
+                </div>
+                {/* Account row */}
+                <div style={{ padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div>
+                    <div style={{ fontSize:10, color:C.gray400, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:2 }}>Account Number</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showA ? accountVal : VENDOR.accountMask}</span>
+                      <CheckCircle size={12} color={C.green}/>
+                    </div>
                   </div>
+                  <button onClick={()=>setShowA(!showA)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
+                    {showA?<EyeOff size={15}/>:<Eye size={15}/>}
+                  </button>
                 </div>
               </div>
-              <div style={{ marginBottom:13 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:C.gray700, display:'block', marginBottom:6, fontFamily:'Montserrat,sans-serif' }}>Account Number</label>
-                <div style={{ border:`1px solid ${C.gray200}`, borderRadius:8, padding:'10px 14px', background:C.gray50, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-                    <Landmark size={14} color={C.gray400}/>
-                    <span style={{ fontSize:13, color:C.gray800, fontFamily:'monospace' }}>{showA ? accountVal : VENDOR.accountMask}</span>
-                    <CheckCircle size={13} color={C.green}/>
-                  </div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <button onClick={()=>setShowA(!showA)} style={{ background:'none', border:'none', cursor:'pointer', color:C.gray400, padding:0 }}>
-                      {showA?<EyeOff size={15}/>:<Eye size={15}/>}
-                    </button>
-                    <button onClick={()=>requestEdit('bankDetails')} style={{ background:'none', border:'none', cursor:'pointer', color:C.blue, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:3, fontFamily:'Montserrat,sans-serif' }}>
-                      <Edit2 size={12}/> Edit
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {/* Single combined Edit button for both fields */}
+              <button onClick={()=>requestEdit('bankDetails')} style={{ background:'none', border:'none', cursor:'pointer', color:C.blue, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4, fontFamily:'Montserrat,sans-serif', padding:'4px 0', marginBottom:9 }}>
+                <Edit2 size={12}/> Edit account &amp; routing number
+              </button>
             </>
           )}
         </>
       );
       case 'check': return (
         <>
-          {/* Paper Check Mockup — Grasshopper Bank format, authentic proportions */}
+          {/* Paper Check Mockup — Grasshopper Bank format */}
           {(() => {
             const today = new Date();
             const issued = today.toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
             const valid  = new Date(today.setMonth(today.getMonth()+6)).toLocaleDateString('en-US',{ month:'2-digit', day:'2-digit', year:'numeric' });
-            const displayAddr = uspsChoice === 'usps' && (uspsState === 'confirmed' || uspsState === 'suggestion')
-              ? `${MOCK_USPS.street}, ${MOCK_USPS.city}, ${MOCK_USPS.state} ${MOCK_USPS.zip}`
-              : `${addrStreet}, ${addrCity}, ${addrState} ${addrZip}`;
+            const CHECK_NAVY = '#1B2B6B';
             return (
               <div style={{ marginBottom:20 }}>
-                <div style={{ border:`2px solid ${C.darkBlue}`, borderRadius:6, overflow:'hidden', background:'#E8EDF8' }}>
+                <div style={{ border:`2px solid ${CHECK_NAVY}`, borderRadius:4, overflow:'hidden', background:'#D9E6F5', display:'flex', flexDirection:'column' }}>
 
                   {/* Top security strip */}
-                  <div style={{ background:C.darkBlue, padding:'5px 14px' }}>
-                    <span style={{ fontSize:9, color:'rgba(255,255,255,0.85)', fontFamily:'monospace', letterSpacing:'0.04em' }}>
+                  <div style={{ background:CHECK_NAVY, padding:'5px 14px', textAlign:'center' }}>
+                    <span style={{ fontSize:8.5, color:'rgba(255,255,255,0.9)', fontFamily:'monospace', letterSpacing:'0.05em', textTransform:'uppercase' }}>
                       THE FACE OF THIS CHECK HAS A SECURITY VOID BACKGROUND PATTERN — DO NOT CASH IF THE VOID IS VISIBLE.
                     </span>
                   </div>
 
-                  {/* Check body */}
-                  <div style={{ padding:'14px 22px 12px' }}>
+                  {/* Check body + right security strip */}
+                  <div style={{ display:'flex', flex:1 }}>
+                    {/* Main check area */}
+                    <div style={{ flex:1, padding:'14px 18px 10px' }}>
 
-                    {/* Row 1: MC name | Bank | Check number */}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                      <div style={{ fontSize:12, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', maxWidth:'35%', lineHeight:1.4 }}>
-                        {VENDOR.mc}
+                      {/* Row 1: Issuer | Bank | Check number */}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:CHECK_NAVY, fontFamily:'Montserrat,sans-serif', maxWidth:'32%', lineHeight:1.4 }}>
+                          {VENDOR.mc}
+                        </div>
+                        <div style={{ textAlign:'center' }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:CHECK_NAVY, fontFamily:'Montserrat,sans-serif' }}>Grasshopper Bank</div>
+                          <div style={{ fontSize:10, color:'#4A5568', fontFamily:'Montserrat,sans-serif' }}>New York, NY</div>
+                        </div>
+                        <div style={{ textAlign:'right', fontFamily:'Montserrat,sans-serif', lineHeight:1.7 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:CHECK_NAVY }}>5053</div>
+                          <div style={{ fontSize:10, color:'#4A5568' }}>Issued on: {issued}</div>
+                          <div style={{ fontSize:10, color:'#4A5568' }}>Valid until: {valid}</div>
+                        </div>
                       </div>
-                      <div style={{ textAlign:'center' }}>
-                        <div style={{ fontSize:13, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif' }}>Grasshopper Bank</div>
-                        <div style={{ fontSize:11, color:C.gray600, fontFamily:'Montserrat,sans-serif' }}>New York, NY</div>
+
+                      {/* Row 2: PAY */}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:800, color:CHECK_NAVY, fontFamily:'Montserrat,sans-serif', marginBottom:4, letterSpacing:'0.04em' }}>PAY</div>
+                          <div style={{ fontSize:10.5, color:'#4A5568', fontFamily:'Montserrat,sans-serif', fontStyle:'italic' }}>Amount confirmed at payment approval</div>
+                        </div>
+                        <div style={{ border:`2px solid ${CHECK_NAVY}`, borderRadius:3, padding:'5px 18px', minWidth:110, textAlign:'center', background:'rgba(255,255,255,0.5)' }}>
+                          <span style={{ fontSize:15, fontWeight:700, color:'#6B7280', fontFamily:'Montserrat,sans-serif' }}>$ —</span>
+                        </div>
                       </div>
-                      <div style={{ textAlign:'right', fontSize:10, color:C.gray700, fontFamily:'Montserrat,sans-serif', lineHeight:1.7 }}>
-                        <div style={{ fontWeight:700 }}>No. 5053</div>
-                        <div>Issued: {issued}</div>
-                        <div>Valid until: {valid}</div>
+
+                      {/* Row 3: TO THE ORDER OF */}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:10 }}>
+                        <div>
+                          <div style={{ fontSize:9, fontWeight:800, color:CHECK_NAVY, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>TO THE ORDER OF</div>
+                          <div style={{ fontSize:13, fontWeight:700, color:CHECK_NAVY, fontFamily:'Montserrat,sans-serif' }}>{VENDOR.name}</div>
+                        </div>
+                        <div style={{ textAlign:'right', borderTop:`1.5px solid #6B7280`, paddingTop:4, minWidth:160 }}>
+                          <div style={{ fontSize:13, color:CHECK_NAVY, fontFamily:'Georgia,serif', fontStyle:'italic' }}>No Signature Required</div>
+                        </div>
+                      </div>
+
+                      {/* Memo */}
+                      <div style={{ fontSize:9.5, color:'#4A5568', fontFamily:'Montserrat,sans-serif', textAlign:'center' }}>
+                        <strong>Memo:</strong> Account No: {VENDOR.account}
                       </div>
                     </div>
 
-                    {/* Row 2: PAY + amount */}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                      <div>
-                        <div style={{ fontSize:13, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', marginBottom:3 }}>PAY</div>
-                        <div style={{ fontSize:11, color:C.gray500, fontFamily:'Montserrat,sans-serif', fontStyle:'italic' }}>Amount confirmed at payment approval</div>
-                      </div>
-                      <div style={{ border:`1.5px solid ${C.darkBlue}`, borderRadius:3, padding:'6px 16px', minWidth:100, textAlign:'center' }}>
-                        <span style={{ fontSize:15, fontWeight:700, color:C.gray400, fontFamily:'Montserrat,sans-serif' }}>$ —</span>
-                      </div>
-                    </div>
-
-                    {/* Row 3: TO THE ORDER OF + signature */}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:8 }}>
-                      <div>
-                        <div style={{ fontSize:9, fontWeight:700, color:C.gray600, fontFamily:'Montserrat,sans-serif', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:3 }}>To the Order of</div>
-                        <div style={{ fontSize:13, fontWeight:700, color:C.darkBlue, fontFamily:'Montserrat,sans-serif', marginBottom:3 }}>{VENDOR.name}</div>
-                        <div style={{ fontSize:11, color:C.gray600, fontFamily:'Montserrat,sans-serif' }}>{displayAddr}</div>
-                      </div>
-                      <div style={{ textAlign:'right', borderTop:`1px solid ${C.gray500}`, paddingTop:4, minWidth:140 }}>
-                        <div style={{ fontSize:12, color:C.darkBlue, fontFamily:'Georgia,serif', fontStyle:'italic' }}>No Signature Required</div>
-                      </div>
-                    </div>
-
-                    {/* Memo */}
-                    <div style={{ fontSize:10, color:C.gray500, fontFamily:'Montserrat,sans-serif', textAlign:'center' }}>
-                      <strong>Memo:</strong> Invoice payment — {VENDOR.mc}
+                    {/* Right security strip — rotated text */}
+                    <div style={{ width:18, background:CHECK_NAVY, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <span style={{ fontSize:7, color:'rgba(255,255,255,0.7)', fontFamily:'monospace', letterSpacing:'0.04em', transform:'rotate(90deg)', whiteSpace:'nowrap' }}>
+                        SECURITY FEATURES · DETAILS ON BACK
+                      </span>
                     </div>
                   </div>
 
-                  {/* Bottom security strip */}
-                  <div style={{ background:C.darkBlue, padding:'5px 14px' }}>
-                    <span style={{ fontSize:9, color:'rgba(255,255,255,0.85)', fontFamily:'monospace', letterSpacing:'0.03em' }}>
-                      THE ORIGINAL DOCUMENT HAS A REFLECTIVE WATERMARK ON THE BACK. — HOLD AT AN ANGLE TO VIEW WHEN CHECKING THE ENDORSEMENT.
+                  {/* Bottom security strip — two columns */}
+                  <div style={{ background:CHECK_NAVY, padding:'5px 14px', display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:8.5, color:'rgba(255,255,255,0.9)', fontFamily:'monospace', letterSpacing:'0.04em' }}>
+                      THE ORIGINAL DOCUMENT HAS A REFLECTIVE WATERMARK ON THE BACK.
+                    </span>
+                    <span style={{ fontSize:8.5, color:'rgba(255,255,255,0.9)', fontFamily:'monospace', letterSpacing:'0.04em' }}>
+                      HOLD AT AN ANGLE TO VIEW WHEN CHECKING THE ENDORSEMENT.
                     </span>
                   </div>
                 </div>
 
-                {/* MICR line */}
-                <div style={{ padding:'6px 10px 0', fontSize:12, color:C.gray500, fontFamily:'monospace', letterSpacing:'0.14em', textAlign:'center' }}>
-                  ⑆•••••{VENDOR.routing.slice(-4)}⑆ &nbsp;⑈••••••{VENDOR.account.slice(-4)}⑈ &nbsp;0005053⑇
+                {/* MICR line — full unmasked numbers */}
+                <div style={{ padding:'7px 10px 0', fontSize:12, color:'#4A5568', fontFamily:'monospace', letterSpacing:'0.15em', textAlign:'center' }}>
+                  ⑆{VENDOR.routing}⑆ &nbsp;⑈{VENDOR.account}⑈ &nbsp;0005053⑇
                 </div>
               </div>
             );
@@ -1589,8 +1558,7 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
             <>
               <div style={{ border:`1px solid ${C.gray200}`, borderRadius:10, padding:'14px 16px', background:C.gray50, marginBottom:14, display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:C.gray900, marginBottom:3, fontFamily:'Montserrat,sans-serif' }}>{VENDOR.name}</div>
-                  <div style={{ fontSize:13, color:C.gray600, fontFamily:'Montserrat,sans-serif' }}>
+                  <div style={{ fontSize:13, color:C.gray700, fontFamily:'Montserrat,sans-serif' }}>
                     {uspsChoice === 'usps' && uspsState === 'confirmed'
                       ? `${MOCK_USPS.street}, ${MOCK_USPS.city}, ${MOCK_USPS.state} ${MOCK_USPS.zip}`
                       : `${addrStreet}, ${addrCity}, ${addrState} ${addrZip}`}
