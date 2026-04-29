@@ -1824,6 +1824,7 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
   const w = useWindowWidth();
   const isMobile = w < 640;
   const [ready, setReady] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
   useEffect(()=>{ const t=setTimeout(()=>setReady(true),80); return()=>clearTimeout(t); },[]);
   const labels: Record<Method,string> = { card:'Digital Card', sameday:'Same-Day Bank Transfer', ach:'Standard Bank Transfer', check:'Paper Check' };
   const rows = [
@@ -1867,6 +1868,36 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
           ))}
         </div>
 
+        {/* SMS Opt-In Consent — only rendered when vendor has a phone on file */}
+        {VENDOR.phone && (
+          <div style={{ borderTop:`1px solid ${C.gray100}`, paddingTop:14, marginBottom:14 }}>
+            {/* Phone row — read only */}
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+              <Phone size={13} color={C.gray400} style={{ flexShrink:0 }}/>
+              <span style={{ fontSize:12, color:C.gray500, width:112, flexShrink:0, fontFamily:'Montserrat,sans-serif' }}>Phone</span>
+              <span style={{ fontSize:12, fontWeight:600, color:C.gray900, fontFamily:'Montserrat,sans-serif' }}>{VENDOR.phone}</span>
+            </div>
+            {/* Checkbox row */}
+            <label style={{ display:'flex', alignItems:'flex-start', gap:10, cursor:'pointer' }}>
+              <input
+                type="checkbox"
+                checked={smsConsent}
+                onChange={e => setSmsConsent(e.target.checked)}
+                style={{ marginTop:2, width:15, height:15, flexShrink:0, accentColor:C.green, cursor:'pointer' }}
+              />
+              <div>
+                <span style={{ fontSize:14, fontWeight:700, color:C.gray900, fontFamily:'Montserrat,sans-serif', display:'block', marginBottom:5 }}>
+                  Enable SMS payment alerts
+                </span>
+                <p style={{ fontSize:11, color:C.gray500, margin:0, lineHeight:1.65, fontFamily:'Montserrat,sans-serif' }}>
+                  By checking this box, you consent to receive recurring automated SMS messages from Vantaca about your vendor payment account, including payment status updates, transaction notifications, and account information. Message frequency may vary. Message and data rates may apply. Reply HELP for help. Reply STOP to opt out. Consent is not a condition of any purchase or service.{' '}
+                  <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue, textDecoration:'underline' }}>View our Privacy Policy</a>
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
+
         {/* Profile settings disclaimer */}
         <div style={{ background:C.blue50, border:`1px solid ${C.blue100}`, borderRadius:9, padding:'11px 14px', marginBottom:20, display:'flex', gap:9, alignItems:'flex-start' }}>
           <Settings size={13} color={C.blue} style={{ flexShrink:0, marginTop:1 }}/>
@@ -1875,7 +1906,7 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
           </p>
         </div>
 
-        <Btn onClick={onClose} variant="green" fullWidth>
+        <Btn onClick={()=>{ console.log('SMS consent:', smsConsent); onClose(); }} variant="green" fullWidth>
           <Check size={14}/> Go to My Dashboard
         </Btn>
       </div>
