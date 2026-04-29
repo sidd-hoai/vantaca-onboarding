@@ -1970,8 +1970,9 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
   };
 
   // SMS consent modal — for existing vendors (post-CAI retroactive consent)
-  const [showSmsModal,    setShowSmsModal]    = useState(isExistingVendor);
-  const [smsModalConsent, setSmsModalConsent] = useState(false);
+  const [showSmsModal,       setShowSmsModal]       = useState(isExistingVendor);
+  const [smsModalConsent,    setSmsModalConsent]    = useState(false);
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
   // Layer 2 re-entry: first-session "save your access" banner.
   // Shown until vendor explicitly dismisses. In production, persist
@@ -2234,17 +2235,41 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
                 </div>
                 <Toggle checked={smsModalConsent} onChange={setSmsModalConsent}/>
               </div>
-              {/* Primary CTA — records preference (on OR off) and never shows again */}
-              <Btn variant="green" fullWidth onClick={()=>{ console.log('SMS preference saved:', smsModalConsent); setShowSmsModal(false); }}>
-                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : 'No thanks'}
+              {/* Primary CTA — outcome-optimised */}
+              <Btn variant="green" fullWidth onClick={()=>{ console.log('SMS preference saved:', smsModalConsent); setShowSmsModal(false); setShowDeclineConfirm(false); }}>
+                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : 'Remind me next time I log in'}
               </Btn>
-              {/* True deferral — no preference recorded, re-surfaces next session */}
-              <button
-                onClick={()=>setShowSmsModal(false)}
-                style={{ width:'100%', background:'none', border:'none', cursor:'pointer', fontSize:12, color:C.gray400, padding:'10px 0 0', fontFamily:'Montserrat,sans-serif' }}
-              >
-                Decide later
-              </button>
+
+              {/* Decline path — buried below primary, requires confirmation */}
+              {!showDeclineConfirm ? (
+                <button
+                  onClick={()=>setShowDeclineConfirm(true)}
+                  style={{ width:'100%', background:'none', border:'none', cursor:'pointer', fontSize:11, color:C.gray400, padding:'10px 0 0', fontFamily:'Montserrat,sans-serif', textDecoration:'underline', textDecorationStyle:'dotted' }}
+                >
+                  I'd rather not receive SMS alerts
+                </button>
+              ) : (
+                <div style={{ marginTop:12, background:'#FFF7ED', border:'1px solid #FED7AA', borderRadius:10, padding:'12px 14px' }}>
+                  <p style={{ fontSize:12, color:'#92400E', margin:'0 0 10px', lineHeight:1.5, fontFamily:'Montserrat,sans-serif' }}>
+                    <strong>Are you sure?</strong> You'll miss instant payment notifications — including alerts when money is on its way to your account.
+                  </p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button
+                      onClick={()=>setShowDeclineConfirm(false)}
+                      style={{ flex:1, background:C.white, border:`1px solid ${C.gray300}`, borderRadius:8, padding:'8px', fontSize:12, fontWeight:600, cursor:'pointer', color:C.gray700, fontFamily:'Montserrat,sans-serif' }}
+                    >
+                      Go back
+                    </button>
+                    <button
+                      onClick={()=>{ console.log('SMS explicitly declined'); setShowSmsModal(false); setShowDeclineConfirm(false); }}
+                      style={{ flex:1, background:C.gray100, border:'none', borderRadius:8, padding:'8px', fontSize:12, fontWeight:600, cursor:'pointer', color:C.gray600, fontFamily:'Montserrat,sans-serif' }}
+                    >
+                      Confirm, don't ask again
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Disclosure */}
               <p style={{ fontSize:10, color:C.gray400, margin:'14px 0 0', lineHeight:1.65, textAlign:'center', fontFamily:'Montserrat,sans-serif' }}>
                 Recurring automated SMS from Vantaca including payment alerts and promotions. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Consent not required for service.{' '}
