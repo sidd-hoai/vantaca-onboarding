@@ -1819,6 +1819,29 @@ const DetailsScreen: React.FC<{ method:Method; onNext:()=>void; onBack:()=>void 
   );
 };
 
+// ─── Toggle Switch ────────────────────────────────────────────
+const Toggle: React.FC<{ checked:boolean; onChange:(v:boolean)=>void }> = ({ checked, onChange }) => (
+  <div
+    onClick={()=>onChange(!checked)}
+    role="switch"
+    aria-checked={checked}
+    style={{
+      width:44, height:24, borderRadius:12, flexShrink:0,
+      background:checked ? C.green : C.gray300,
+      position:'relative', cursor:'pointer',
+      transition:'background 0.22s ease',
+    }}
+  >
+    <div style={{
+      position:'absolute', top:3,
+      left:checked ? 23 : 3,
+      width:18, height:18, borderRadius:'50%',
+      background:C.white, boxShadow:'0 1px 3px rgba(0,0,0,0.2)',
+      transition:'left 0.22s ease',
+    }}/>
+  </div>
+);
+
 // ─── Confirm Modal (appears on top of Dashboard) ─────────────
 const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, onClose }) => {
   const w = useWindowWidth();
@@ -1868,33 +1891,41 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
           ))}
         </div>
 
-        {/* SMS Opt-In Consent — only rendered when vendor has a phone on file */}
+        {/* SMS Opt-In Consent — benefit-first card, only shown when phone on file */}
         {VENDOR.phone && (
-          <div style={{ borderTop:`1px solid ${C.gray100}`, paddingTop:14, marginBottom:14 }}>
-            {/* Phone row — read only */}
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
-              <Phone size={13} color={C.gray400} style={{ flexShrink:0 }}/>
-              <span style={{ fontSize:12, color:C.gray500, width:112, flexShrink:0, fontFamily:'Montserrat,sans-serif' }}>Phone</span>
-              <span style={{ fontSize:12, fontWeight:600, color:C.gray900, fontFamily:'Montserrat,sans-serif' }}>{VENDOR.phone}</span>
-            </div>
-            {/* Checkbox row */}
-            <label style={{ display:'flex', alignItems:'flex-start', gap:10, cursor:'pointer' }}>
-              <input
-                type="checkbox"
-                checked={smsConsent}
-                onChange={e => setSmsConsent(e.target.checked)}
-                style={{ marginTop:2, width:15, height:15, flexShrink:0, accentColor:C.green, cursor:'pointer' }}
-              />
-              <div>
-                <span style={{ fontSize:14, fontWeight:700, color:C.gray900, fontFamily:'Montserrat,sans-serif', display:'block', marginBottom:5 }}>
-                  Enable SMS payment alerts
-                </span>
-                <p style={{ fontSize:11, color:C.gray500, margin:0, lineHeight:1.65, fontFamily:'Montserrat,sans-serif' }}>
-                  By checking this box, you consent to receive recurring automated SMS messages from Vantaca about your vendor payment account, including payment status updates, transaction notifications, and account information. Message frequency may vary. Message and data rates may apply. Reply HELP for help. Reply STOP to opt out. Consent is not a condition of any purchase or service.{' '}
-                  <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue, textDecoration:'underline' }}>View our Privacy Policy</a>
-                </p>
+          <div style={{
+            border:`1.5px solid ${smsConsent ? C.green100 : C.gray200}`,
+            borderRadius:12,
+            background:smsConsent ? C.green50 : C.gray50,
+            padding:'14px 16px',
+            marginBottom:16,
+            transition:'background 0.25s ease, border-color 0.25s ease',
+          }}>
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+              <div style={{ display:'flex', gap:10, alignItems:'flex-start', flex:1, minWidth:0 }}>
+                <div style={{
+                  width:36, height:36, borderRadius:9, flexShrink:0,
+                  background:smsConsent ? C.green100 : C.gray200,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  transition:'background 0.25s ease',
+                }}>
+                  <Bell size={17} color={smsConsent ? C.green : C.gray500}/>
+                </div>
+                <div style={{ minWidth:0 }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:C.gray900, fontFamily:'Montserrat,sans-serif', display:'block', marginBottom:3, lineHeight:1.3 }}>
+                    Get instant payment alerts
+                  </span>
+                  <span style={{ fontSize:12, color:C.gray600, fontFamily:'Montserrat,sans-serif', lineHeight:1.5 }}>
+                    We'll text <strong>{VENDOR.phone}</strong> when a payment is sent or confirmed.
+                  </span>
+                </div>
               </div>
-            </label>
+              <Toggle checked={smsConsent} onChange={setSmsConsent}/>
+            </div>
+            <p style={{ fontSize:10, color:C.gray400, margin:'10px 0 0 46px', lineHeight:1.65, fontFamily:'Montserrat,sans-serif' }}>
+              Recurring automated SMS from Vantaca. Msg &amp; data rates may apply. Reply STOP to opt out.{' '}
+              <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue, textDecoration:'underline' }}>Privacy Policy</a>
+            </p>
           </div>
         )}
 
@@ -1936,6 +1967,11 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
   const handlePasskeyCreate = () => {
     setTimeout(() => setPasskeySetupDone(true), 900);
   };
+
+  // SMS consent FAB — retroactive consent mock-up for existing vendors (post-CAI)
+  const [fabOpen,       setFabOpen]       = useState(false);
+  const [fabSmsConsent, setFabSmsConsent] = useState(false);
+  const [fabDone,       setFabDone]       = useState(false);
 
   // Layer 2 re-entry: first-session "save your access" banner.
   // Shown until vendor explicitly dismisses. In production, persist
@@ -2166,6 +2202,86 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
 
       {/* Confirm modal */}
       {showModal && <ConfirmModal method={method} onClose={onCloseModal} />}
+
+      {/* SMS Consent FAB — retroactive consent for existing vendors (post-CAI mock-up) */}
+      {!fabDone && (
+        <>
+          {/* FAB bell button — shown when card is closed */}
+          {!fabOpen && (
+            <button
+              onClick={()=>setFabOpen(true)}
+              title="Enable SMS payment alerts"
+              style={{
+                position:'fixed', bottom:24, right:24, zIndex:450,
+                width:52, height:52, borderRadius:'50%',
+                background:C.darkBlue, border:'none', cursor:'pointer',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                boxShadow:'0 4px 16px rgba(21,60,79,0.45)',
+              }}
+            >
+              <Bell size={21} color={C.white}/>
+              <div style={{
+                position:'absolute', top:-3, right:-3,
+                width:18, height:18, borderRadius:'50%',
+                background:'#F04438', border:'2px solid white',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:10, fontWeight:700, color:'white', fontFamily:'Montserrat,sans-serif',
+              }}>1</div>
+            </button>
+          )}
+
+          {/* Floating consent card */}
+          {fabOpen && (
+            <div style={{
+              position:'fixed', bottom:24, right:24, zIndex:450,
+              width:isMobile ? 'calc(100vw - 32px)' : 310,
+              maxWidth:310,
+              background:C.white, borderRadius:16,
+              boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
+              border:`1px solid ${C.gray200}`,
+              overflow:'hidden', fontFamily:'Montserrat,sans-serif',
+            }}>
+              {/* Header */}
+              <div style={{ background:C.darkBlue, padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  <Bell size={14} color={C.white}/>
+                  <span style={{ fontSize:13, fontWeight:700, color:C.white }}>Enable SMS Alerts</span>
+                </div>
+                <button onClick={()=>setFabOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', padding:2, display:'flex', alignItems:'center' }}>
+                  <X size={15} color="rgba(255,255,255,0.6)"/>
+                </button>
+              </div>
+              {/* Body */}
+              <div style={{ padding:'16px' }}>
+                <p style={{ fontSize:13, color:C.gray700, margin:'0 0 14px', lineHeight:1.65 }}>
+                  Know the moment a payment is on its way. We'll send a quick text to the number on your account.
+                </p>
+                {/* Phone + Toggle row */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:C.gray50, borderRadius:9, padding:'10px 14px', marginBottom:12 }}>
+                  <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                    <Phone size={13} color={C.gray400}/>
+                    <span style={{ fontSize:13, fontWeight:600, color:C.gray900 }}>{VENDOR.phone}</span>
+                  </div>
+                  <Toggle checked={fabSmsConsent} onChange={setFabSmsConsent}/>
+                </div>
+                <p style={{ fontSize:10, color:C.gray400, margin:'0 0 14px', lineHeight:1.65 }}>
+                  Recurring automated SMS from Vantaca. Msg &amp; data rates may apply. Reply STOP to opt out.{' '}
+                  <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue }}>Privacy Policy</a>
+                </p>
+                <Btn variant="green" fullWidth onClick={()=>{ console.log('Existing vendor SMS consent:', fabSmsConsent); setFabDone(true); }}>
+                  {fabSmsConsent ? <><Check size={13}/>&nbsp;Enable SMS Alerts</> : 'No thanks'}
+                </Btn>
+                <button
+                  onClick={()=>setFabOpen(false)}
+                  style={{ width:'100%', background:'none', border:'none', cursor:'pointer', fontSize:12, color:C.gray500, padding:'8px 0 0', fontFamily:'Montserrat,sans-serif' }}
+                >
+                  Remind me later
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Passkey setup modal — mock browser dialog */}
       {showPasskeyModal && (
