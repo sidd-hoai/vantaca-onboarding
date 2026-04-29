@@ -2234,16 +2234,16 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
                 </div>
                 <Toggle checked={smsModalConsent} onChange={setSmsModalConsent}/>
               </div>
-              {/* Primary CTA */}
-              <Btn variant="green" fullWidth onClick={()=>{ console.log('Existing vendor SMS consent:', smsModalConsent); setShowSmsModal(false); }}>
-                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : 'Continue without SMS'}
+              {/* Primary CTA — records preference (on OR off) and never shows again */}
+              <Btn variant="green" fullWidth onClick={()=>{ console.log('SMS preference saved:', smsModalConsent); setShowSmsModal(false); }}>
+                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : <><Check size={14}/>&nbsp;Save &amp; Continue</>}
               </Btn>
-              {/* Soft dismiss */}
+              {/* True deferral — no preference recorded, re-surfaces next session */}
               <button
                 onClick={()=>setShowSmsModal(false)}
                 style={{ width:'100%', background:'none', border:'none', cursor:'pointer', fontSize:12, color:C.gray400, padding:'10px 0 0', fontFamily:'Montserrat,sans-serif' }}
               >
-                Remind me next time I log in
+                Decide later
               </button>
               {/* Disclosure */}
               <p style={{ fontSize:10, color:C.gray400, margin:'14px 0 0', lineHeight:1.65, textAlign:'center', fontFamily:'Montserrat,sans-serif' }}>
