@@ -2236,7 +2236,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
               </div>
               {/* Primary CTA — records preference (on OR off) and never shows again */}
               <Btn variant="green" fullWidth onClick={()=>{ console.log('SMS preference saved:', smsModalConsent); setShowSmsModal(false); }}>
-                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : <><Check size={14}/>&nbsp;Save &amp; Continue</>}
+                {smsModalConsent ? <><Check size={14}/>&nbsp;Enable SMS Alerts</> : 'No thanks'}
               </Btn>
               {/* True deferral — no preference recorded, re-surfaces next session */}
               <button
