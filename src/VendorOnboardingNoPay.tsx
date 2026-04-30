@@ -1925,7 +1925,7 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
                 <Toggle checked={smsConsent} onChange={setSmsConsent}/>
               </div>
               <p style={{ fontSize:10, color:C.gray500, margin:0, lineHeight:1.65, fontFamily:'Montserrat,sans-serif' }}>
-                Recurring automated SMS from Vantaca including payment alerts and promotions. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Consent not required for service.{' '}
+                Recurring automated SMS from Vantaca including payment alerts and promotions. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Opting in is optional and will not affect your ability to use Vantaca Vendor Pay.{' '}
                 <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue, textDecoration:'underline' }}>Privacy Policy</a>
               </p>
             </div>
@@ -2272,7 +2272,7 @@ const DashboardScreen: React.FC<{ showModal:boolean; method:Method; onCloseModal
 
               {/* Disclosure */}
               <p style={{ fontSize:10, color:C.gray400, margin:'14px 0 0', lineHeight:1.65, textAlign:'center', fontFamily:'Montserrat,sans-serif' }}>
-                Recurring automated SMS from Vantaca including payment alerts and promotions. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Consent not required for service.{' '}
+                Recurring automated SMS from Vantaca including payment alerts and promotions. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Opting in is optional and will not affect your ability to use Vantaca Vendor Pay.{' '}
                 <a href="https://www.vantaca.com/privacy-policy" target="_blank" rel="noreferrer" style={{ color:C.blue }}>Privacy Policy</a>
               </p>
             </div>
