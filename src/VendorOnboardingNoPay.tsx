@@ -1850,13 +1850,15 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
   const [smsConsent, setSmsConsent] = useState(false);
   useEffect(()=>{ const t=setTimeout(()=>setReady(true),80); return()=>clearTimeout(t); },[]);
   const labels: Record<Method,string> = { card:'Digital Card', sameday:'Same-Day Bank Transfer', ach:'Standard Bank Transfer', check:'Paper Check' };
+  const isCheck = method === 'check';
+  // 4-row summary: name + DBA removed (MC-provided, no verification value).
+  // Address label is context-aware: paper check shows mailing address label.
+  // Phone is last so the SMS card flows naturally from it.
   const rows = [
-    { icon:<Building2 size={13} color={C.gray400}/>, label:'Business name',    val:VENDOR.name    },
-    { icon:<Star      size={13} color={C.gray400}/>, label:'DBA',              val:VENDOR.dba     },
-    { icon:<Home      size={13} color={C.gray400}/>, label:'Business address', val:VENDOR.address },
-    { icon:<Phone     size={13} color={C.gray400}/>, label:'Phone',            val:VENDOR.phone   },
+    { icon:<Home      size={13} color={C.gray400}/>, label: isCheck ? 'Check mailing address' : 'Business address', val:VENDOR.address },
     { icon:<CreditCard size={13} color={C.gray400}/>,label:'Payment method',   val:labels[method] },
     { icon:<Mail      size={13} color={C.gray400}/>, label:'Notifications',    val:VENDOR.email   },
+    { icon:<Phone     size={13} color={C.gray400}/>, label:'Phone',            val:VENDOR.phone   },
   ];
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(15,23,42,0.55)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:isMobile?'16px':'24px', backdropFilter:'blur(2px)' }}>
@@ -1930,13 +1932,11 @@ const ConfirmModal: React.FC<{ method:Method; onClose:()=>void }> = ({ method, o
           </div>
         )}
 
-        {/* Profile settings disclaimer */}
-        <div style={{ background:C.blue50, border:`1px solid ${C.blue100}`, borderRadius:9, padding:'11px 14px', marginBottom:20, display:'flex', gap:9, alignItems:'flex-start' }}>
-          <Settings size={13} color={C.blue} style={{ flexShrink:0, marginTop:1 }}/>
-          <p style={{ fontSize:12, color:C.gray700, margin:0, lineHeight:1.65, fontFamily:'Montserrat,sans-serif' }}>
-            The business details above can be reviewed and updated anytime under <strong>Account Settings → Profile</strong>. Changes to your profile information do not affect your payment method or any active transactions.
-          </p>
-        </div>
+        {/* One-liner footer — replaces heavy blue disclaimer box */}
+        <p style={{ fontSize:11, color:C.gray400, textAlign:'center', margin:'0 0 16px', lineHeight:1.6, fontFamily:'Montserrat,sans-serif' }}>
+          Business name and other details can be updated in{' '}
+          <strong style={{ color:C.gray500, fontWeight:600 }}>Account Settings → Profile</strong>
+        </p>
 
         <Btn onClick={()=>{ console.log('SMS consent:', smsConsent); onClose(); }} variant="green" fullWidth>
           <Check size={14}/> Go to My Dashboard
